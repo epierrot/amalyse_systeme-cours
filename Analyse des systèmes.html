@@ -1,0 +1,892 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Analyse des systèmes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : cahier d'ingénieur sur papier millimétré ; chaque partie est encadrée comme un diagramme SysML (onglet « ucd », « req », « ibd »…) */
+:root{
+  --paper:#F3F5F4; --grid:#DCE3E0; --card:#FFFFFF; --ink:#18212B; --muted:#56636F; --line:#B9C4C1;
+  --accent:#E8A600; --accent-ink:#5A4000; --accent-soft:#FFF1C7;
+  --info:#1E8A4F; --elec:#D02B3A; --meca:#1F5FD6;
+  --ok:#1E8A4F; --ok-soft:#DDF3E6; --bad:#C02A37; --bad-soft:#FBE1E3;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#11171D; --grid:#1C252D; --card:#18212A; --ink:#E6ECEF; --muted:#9AA8B2; --line:#34424D;
+  --accent:#F2B92A; --accent-ink:#FFE3A0; --accent-soft:#3A2F10;
+  --info:#43C27C; --elec:#FF5F6B; --meca:#5E93FF;
+  --ok:#43C27C; --ok-soft:#173826; --bad:#FF6B76; --bad-soft:#3E1B20; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#11171D; --grid:#1C252D; --card:#18212A; --ink:#E6ECEF; --muted:#9AA8B2; --line:#34424D;
+  --accent:#F2B92A; --accent-ink:#FFE3A0; --accent-soft:#3A2F10;
+  --info:#43C27C; --elec:#FF5F6B; --meca:#5E93FF;
+  --ok:#43C27C; --ok-soft:#173826; --bad:#FF6B76; --bad-soft:#3E1B20; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:17px/1.55 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.1;margin:0}
+h1{font-size:clamp(2.1rem,6vw,3.6rem);font-weight:800;font-stretch:80%;letter-spacing:-.01em}
+h2{font-size:clamp(1.5rem,3.6vw,2.1rem);font-weight:800;font-stretch:85%}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+.mono{font-family:var(--f-mono)}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* barre de navigation */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;margin-inline:-16px;padding:10px 16px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tabbtn{font:600 .82rem var(--f-mono);color:var(--muted);padding:7px 11px;border:1px solid var(--line);border-radius:3px;background:var(--card);white-space:nowrap;flex:none}
+.tabbtn:hover{border-color:var(--ink);color:var(--ink)}
+.tabbtn.done{border-color:var(--ok);color:var(--ok)}
+.tabbtn.done::after{content:" ✓"}
+.tabbtn[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.tabbtn.evalbtn{border-style:dashed;border-color:var(--accent)}
+.tabbtn.evalbtn[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#1d1600}
+.navlinks{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin;padding-block:2px}
+.pager{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:16px}
+.pager .btn:only-child{margin-left:auto}
+.spec{border:1.5px solid var(--ink);background:var(--paper);font-size:.95rem;align-self:start}
+.spec .sh{border-bottom:1.5px solid var(--ink);padding:8px 12px;text-align:center;font-weight:700;font-family:var(--f-display)}
+.spec .sh small{display:block;font:400 .75rem var(--f-mono);color:var(--muted)}
+.spec dl{margin:0;padding:10px 12px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.spec dt{color:var(--muted)} .spec dd{margin:0;font-family:var(--f-mono);font-size:.88rem}
+.eblock{border:1.5px solid var(--ink);background:var(--card);padding:16px;display:grid;gap:10px}
+.eblock .eh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.comp{font:600 .72rem var(--f-mono);padding:2px 8px;border:1px solid var(--muted);border-radius:999px;color:var(--muted)}
+.eitem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:8px 10px;border:1px solid var(--line);background:var(--paper)}
+.eitem label{font-weight:600}
+.eitem select,.eitem input{font:600 .95rem var(--f-mono);padding:6px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);max-width:260px}
+.eitem input{width:96px}
+.eitem .unit{font:600 .9rem var(--f-mono);margin-left:6px;color:var(--muted)}
+.eitem .corr{grid-column:1/-1;font-size:.9rem}
+.eitem.good{border-color:var(--ok);background:var(--ok-soft)} .eitem.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.bilan{border:2px solid var(--ink);background:var(--card);padding:18px;display:grid;gap:14px}
+.lvl{font:700 .78rem var(--f-mono);padding:3px 8px;border-radius:3px;white-space:nowrap}
+.lvl.a{background:var(--ok-soft);color:var(--ok)} .lvl.b{background:var(--accent-soft);color:var(--accent-ink)} .lvl.c{background:var(--bad-soft);color:var(--bad)}
+.score{font:600 .85rem var(--f-mono);white-space:nowrap}
+.meter{height:6px;background:var(--line);border-radius:3px;overflow:hidden;width:110px}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
+
+/* en-tête */
+header.hero{padding-block:48px 28px;display:grid;gap:16px}
+.eyebrow{font:600 .78rem var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.hero h1 span{background:linear-gradient(transparent 62%,var(--accent) 62%,var(--accent) 92%,transparent 92%);padding-inline:2px}
+.hero p.lead{font-size:1.15rem;max-width:62ch}
+.roadmap{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.roadmap span{font:.8rem var(--f-mono);padding:4px 10px;border:1px dashed var(--line);border-radius:3px;background:var(--card)}
+
+/* cadre SysML */
+section.frame{position:relative;background:var(--card);border:1.5px solid var(--ink);margin-top:40px;padding:56px clamp(16px,4vw,36px) 32px;display:grid;gap:20px;scroll-margin-top:70px}
+.tab{position:absolute;top:-1.5px;left:-1.5px;font:600 .82rem var(--f-mono);background:var(--card);border:1.5px solid var(--ink);padding:6px 26px 6px 12px;clip-path:polygon(0 0,100% 0,100% 55%,calc(100% - 14px) 100%,0 100%);max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab b{color:var(--accent-ink);background:var(--accent-soft);padding:0 4px;margin-right:6px}
+.prose{max-width:66ch;display:grid;gap:10px}
+.key{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;max-width:66ch}
+.key strong{font-family:var(--f-display)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.cols>*{min-width:0}
+
+/* activités */
+.act{border:1px dashed var(--line);padding:18px;display:grid;gap:14px;background:var(--paper)}
+.act-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.act-h .tag{font:600 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.1em;background:var(--ink);color:var(--card);padding:2px 8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:1.5px solid var(--ink);background:var(--card);padding:7px 14px;font-weight:700;border-radius:3px}
+.btn.primary{background:var(--ink);color:var(--card)}
+.btn:hover{transform:translateY(-1px)}
+.fb{font-weight:600;min-height:1.4em}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.svgbox{overflow-x:auto;background:var(--card);border:1px solid var(--line)}
+.svgbox svg{display:block;width:100%;min-width:560px;height:auto}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+.hit{cursor:pointer}
+.hit:hover .shape,.hit.sel .shape{stroke:var(--accent);stroke-width:3}
+.panel{border:1.5px solid var(--ink);background:var(--card);padding:14px 16px;min-height:120px}
+.panel h3{margin-bottom:6px}
+
+/* produit / besoin */
+.cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.flip{border:1.5px solid var(--ink);background:var(--card);padding:14px;text-align:left;display:grid;gap:6px;min-height:130px;border-radius:3px}
+.flip .q{font-family:var(--f-display);font-weight:700;font-size:1.1rem}
+.flip .a{color:var(--muted)}
+.flip[aria-expanded="true"]{background:var(--accent-soft)}
+
+/* req tree */
+.tree{display:grid;gap:8px;font-size:.95rem}
+.req{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);padding:8px 10px}
+.req .id{font:600 .8rem var(--f-mono);color:var(--accent-ink);background:var(--accent-soft);padding:2px 6px}
+.req.l1{margin-left:0;border-color:var(--ink);font-weight:700}
+.req.l2{margin-left:24px;font-weight:600}
+.req.l3{margin-left:48px}
+.req select{font:inherit;font-size:.9rem;padding:4px;border:1px solid var(--line);background:var(--card);color:var(--ink);max-width:180px}
+.req.good{background:var(--ok-soft);border-color:var(--ok)} .req.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.legend-t{width:100%;border-collapse:collapse;font-size:.95rem}
+.legend-t td,.legend-t th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.legend-t th{font-family:var(--f-display);background:var(--paper)}
+.tablebox{overflow-x:auto}
+
+/* table puissance */
+.ptab{width:100%;border-collapse:collapse;font-size:.95rem;min-width:560px}
+.ptab th,.ptab td{border:1px solid var(--line);padding:8px 10px;text-align:center}
+.ptab th{font-family:var(--f-display);background:var(--paper)}
+.ptab th .f{color:var(--meca)} .ptab th .e{color:var(--elec)}
+.slot{min-width:110px;border:1.5px dashed var(--line);padding:6px 8px;border-radius:3px;background:var(--paper);font:600 .95rem var(--f-mono)}
+.slot.good{border-style:solid;border-color:var(--ok);background:var(--ok-soft)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--ink);background:var(--card);padding:5px 12px;border-radius:999px;font:600 .9rem var(--f-mono)}
+.chip.sel{background:var(--accent);border-color:var(--accent);color:#1d1600}
+.chip.used{opacity:.35;pointer-events:none}
+
+/* calculs */
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+.calc label{display:grid;gap:4px;font-size:.85rem;font-weight:600;color:var(--muted)}
+.calc input,.calc select{font:600 1rem var(--f-mono);padding:8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+.result{font:700 1.25rem var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* chaîne de rendement */
+.chain{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:6px}
+.stage{min-width:150px;flex:1;border:1.5px solid var(--ink);background:var(--card);padding:10px;display:grid;gap:6px}
+.stage h4{margin:0;font:700 .95rem var(--f-display)}
+.stage input[type=range]{width:100%;accent-color:var(--accent)}
+.arrow{min-width:84px;display:grid;place-items:center;align-content:center;gap:2px;font:600 .82rem var(--f-mono);text-align:center;font-variant-numeric:tabular-nums}
+.arrow .ar{width:100%;height:14px;position:relative}
+.arrow .ar::before{content:"";position:absolute;left:4px;right:12px;top:5px;height:4px;background:var(--ok)}
+.arrow .ar::after{content:"";position:absolute;right:2px;top:0;border:7px solid transparent;border-left:12px solid var(--ok);border-right:0}
+.arrow.in .ar::before{background:var(--meca)} .arrow.in .ar::after{border-left-color:var(--meca)}
+.loss{font-size:.78rem;color:var(--bad)}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:140px 1fr 80px;gap:10px;align-items:center;font-size:.9rem}
+.bar .track{height:14px;background:var(--paper);border:1px solid var(--line)}
+.bar .fill{height:100%;transition:width .3s}
+
+/* chaînes fonctionnelles */
+.bins{display:grid;gap:8px}
+.binrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.bin{border:1.5px solid var(--ink);background:var(--card);min-height:96px;padding:8px;display:grid;align-content:start;gap:6px;text-align:left}
+.bin .bh{font:700 .95rem var(--f-display)}
+.bin .bh small{display:block;font:400 .72rem var(--f-mono);color:var(--muted)}
+.bin.arm{outline:3px dashed var(--accent);outline-offset:-3px}
+.piece{border:1.5px solid var(--ink);background:var(--accent-soft);padding:4px 10px;border-radius:3px;font-weight:600;font-size:.9rem}
+.piece.sel{background:var(--accent);color:#1d1600}
+.piece.good{background:var(--ok-soft);border-color:var(--ok)} .piece.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.chain-label{font:600 .78rem var(--f-mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+
+/* ibd */
+.pens{display:flex;gap:8px;flex-wrap:wrap}
+.pen{display:flex;gap:8px;align-items:center;border:1.5px solid var(--ink);background:var(--card);padding:6px 12px;border-radius:3px;font-weight:700}
+.pen i{width:22px;height:6px;border-radius:3px;display:block}
+.pen.sel{box-shadow:0 0 0 3px var(--accent)}
+.lnk{cursor:pointer}
+.lnk .vis{stroke:var(--ink);stroke-width:2;fill:none}
+.lnk .hitp{stroke:transparent;stroke-width:16;fill:none}
+.lnk:hover .vis{stroke-width:4}
+.lnk.c-info .vis{stroke:var(--info);stroke-width:4}
+.lnk.c-elec .vis{stroke:var(--elec);stroke-width:4}
+.lnk.c-meca .vis{stroke:var(--meca);stroke-width:4}
+.lnk.wrong .vis{stroke-dasharray:6 4}
+
+/* quiz */
+.qz{display:grid;gap:14px}
+.qcard{border:1.5px solid var(--ink);background:var(--card);padding:16px;display:grid;gap:10px}
+.qcard .num{font:600 .78rem var(--f-mono);color:var(--muted)}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;border:1.5px solid var(--line);background:var(--paper);padding:8px 12px;border-radius:3px}
+.opt:hover{border-color:var(--ink)}
+.opt.good{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt[disabled]{cursor:default}
+.expl{font-size:.92rem;color:var(--muted)}
+.final{border:2px solid var(--ink);background:var(--accent-soft);padding:18px;display:grid;gap:6px}
+.final .big{font:800 2.4rem var(--f-display);font-stretch:80%}
+footer{margin-top:40px;font:.8rem var(--f-mono);color:var(--muted)}
+@media (max-width:560px){.eitem{grid-template-columns:1fr}.eitem select{max-width:none;width:100%}.bar{grid-template-columns:96px 1fr 64px}.req.l3{margin-left:24px}.req.l2{margin-left:12px}.req{grid-template-columns:auto 1fr}.req select{grid-column:1/-1;max-width:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.btn:hover{transform:none}}
+</style>
+
+
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Spé SI · 1<sup>re</sup> · Lycée Bamana</div>
+  <h1>Analyse des <span>systèmes</span></h1>
+  <p class="lead">Fil rouge : un tapis de course de salle de gym. Tu vas partir du besoin de l'utilisateur, le traduire en diagrammes SysML, puis suivre l'énergie et l'information jusqu'à la bande qui défile sous tes pieds.</p>
+  <div class="roadmap"><span>Besoin</span><span>→ ucd</span><span>→ req</span><span>→ Énergie &amp; puissance</span><span>→ Rendement</span><span>→ Chaînes fonctionnelles</span><span>→ ibd</span><span>→ Quiz</span><span>→ Évaluation formative</span></div>
+  <p class="muted" style="font-size:.95rem">Une partie par onglet. Chaque activité réussie coche son onglet ; termine par l'évaluation formative.</p>
+</header>
+<nav class="nav" aria-label="Parties du cours">
+  <div class="wrap">
+    <div class="navlinks" id="navlinks" role="tablist"><button class="tabbtn" role="tab" id="tab-besoin" data-t="besoin" aria-controls="besoin" aria-selected="false" tabindex="-1">1 Besoin</button><button class="tabbtn" role="tab" id="tab-ucd" data-t="ucd" aria-controls="ucd" aria-selected="false" tabindex="-1">2 ucd</button><button class="tabbtn" role="tab" id="tab-req" data-t="req" aria-controls="req" aria-selected="false" tabindex="-1">3 req</button><button class="tabbtn" role="tab" id="tab-energie" data-t="energie" aria-controls="energie" aria-selected="false" tabindex="-1">4 Énergie</button><button class="tabbtn" role="tab" id="tab-rendement" data-t="rendement" aria-controls="rendement" aria-selected="false" tabindex="-1">5 Rendement</button><button class="tabbtn" role="tab" id="tab-chaines" data-t="chaines" aria-controls="chaines" aria-selected="false" tabindex="-1">6 Chaînes</button><button class="tabbtn" role="tab" id="tab-ibd" data-t="ibd" aria-controls="ibd" aria-selected="false" tabindex="-1">7 ibd</button><button class="tabbtn" role="tab" id="tab-quiz" data-t="quiz" aria-controls="quiz" aria-selected="false" tabindex="-1">Quiz</button><button class="tabbtn evalbtn" role="tab" id="tab-eval" data-t="eval" aria-controls="eval" aria-selected="false" tabindex="-1">Évaluation</button></div>
+    <div class="row" style="gap:8px"><div class="meter" aria-hidden="true"><i id="meter"></i></div><span class="score" id="progress">0/9</span></div>
+  </div>
+</nav>
+<div id="tabs-top"></div>
+
+<!-- 1 BESOIN -->
+<section class="frame" id="besoin" role="tabpanel" aria-labelledby="tab-besoin">
+  <div class="tab"><b>§1</b>Conception ou évolution de produits</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Un produit répond à un besoin</h2>
+      <p>Un <strong>produit</strong> est ce qui est fourni à un utilisateur pour répondre à un besoin. Le <strong>besoin</strong> est la nécessité ou le désir éprouvé par cet utilisateur.</p>
+      <p>Pour concevoir un produit nouveau, il faut parfois imaginer de quoi les utilisateurs pourraient avoir besoin avant même qu'ils ne l'expriment.</p>
+    </div>
+    <div class="key"><strong>À retenir.</strong> Pour traduire le besoin du client en fonctions, on réalise une <strong>analyse fonctionnelle</strong>. Pour le tapis : s'entraîner à différentes vitesses, à différentes inclinaisons, et enregistrer ses performances si on le souhaite.</div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité 1</span><h3>Retrouve le besoin derrière chaque produit</h3></div>
+    <p class="muted">Clique sur une carte pour la retourner. Formule d'abord le besoin dans ta tête.</p>
+    <div class="cards3" id="flips">
+      <button class="flip" aria-expanded="false"><span class="q">Éolienne</span><span class="a">Quel besoin ?</span></button>
+      <button class="flip" aria-expanded="false"><span class="q">Smartphone</span><span class="a">Quel besoin ?</span></button>
+      <button class="flip" aria-expanded="false"><span class="q">Voiture autonome</span><span class="a">Quel besoin ?</span></button>
+      <button class="flip" aria-expanded="false"><span class="q">Tapis de course</span><span class="a">Quel besoin ?</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- 2 UCD -->
+<section class="frame" id="ucd" role="tabpanel" aria-labelledby="tab-ucd">
+  <div class="tab"><b>ucd</b>Tapis de course</div>
+  <div class="prose">
+    <h2>Le diagramme des cas d'utilisation</h2>
+    <p>Le <strong>ucd</strong> (<em>Use Case Diagram</em>) décrit les fonctions attendues du système, vues de l'extérieur : qui l'utilise, et pour faire quoi.</p>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité 2</span><h3>Explore, puis complète les relations</h3></div>
+    <p class="muted">Clique sur un élément du diagramme pour lire sa signification. Ensuite, clique sur chaque étiquette <span class="mono">« ? »</span> pour choisir <span class="mono">include</span> ou <span class="mono">extend</span>.</p>
+    <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+      <div class="svgbox"><svg id="ucdsvg" viewBox="0 0 640 430" role="img" aria-label="Diagramme des cas d'utilisation du tapis de course">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10" fill="none" stroke="var(--muted)" stroke-width="1.5"/></marker></defs>
+        <path d="M6 6 H200 L214 18 V30 H6 Z" fill="var(--card)" stroke="var(--ink)" stroke-width="1.2"/>
+        <text x="14" y="23" font-size="13" font-family="JetBrains Mono, monospace">ucd Tapis de course</text>
+        <g class="hit" data-k="systeme"><rect class="shape" x="150" y="40" width="345" height="380" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/></g>
+        <!-- lignes d'association -->
+        <line x1="84" y1="220" x2="188" y2="238" stroke="var(--ink)" stroke-width="1.4"/>
+        <line x1="84" y1="232" x2="176" y2="378" stroke="var(--ink)" stroke-width="1.4"/>
+        <line x1="397" y1="232" x2="540" y2="210" stroke="var(--ink)" stroke-width="1.4"/>
+        <line x1="352" y1="384" x2="540" y2="384" stroke="var(--ink)" stroke-width="1.4"/>
+        <!-- relations -->
+        <line x1="270" y1="214" x2="250" y2="110" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+        <line x1="335" y1="80" x2="356" y2="68" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+        <line x1="310" y1="106" x2="340" y2="134" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+        <line x1="380" y1="296" x2="330" y2="264" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+        <!-- acteur principal -->
+        <g class="hit" data-k="acteur">
+          <rect class="shape" x="30" y="170" width="80" height="110" fill="transparent" stroke="transparent"/>
+          <circle cx="70" cy="190" r="10" fill="none" stroke="var(--info)" stroke-width="2"/>
+          <path d="M70 200 V236 M50 214 H90 M70 236 L54 260 M70 236 L86 260" stroke="var(--info)" stroke-width="2" fill="none"/>
+          <text x="70" y="276" text-anchor="middle" font-size="13">Utilisateur</text>
+        </g>
+        <!-- cas d'utilisation -->
+        <g class="hit" data-k="cu-programme"><ellipse class="shape" cx="250" cy="85" rx="92" ry="25" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="250" y="81" text-anchor="middle" font-size="12">Choisir un programme</text><text x="250" y="96" text-anchor="middle" font-size="12">d'entraînement</text></g>
+        <g class="hit" data-k="cu-inclinaison"><ellipse class="shape" cx="418" cy="58" rx="70" ry="19" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="418" y="62" text-anchor="middle" font-size="12">Choisir l'inclinaison</text></g>
+        <g class="hit" data-k="cu-vitesse"><ellipse class="shape" cx="400" cy="150" rx="64" ry="19" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="400" y="154" text-anchor="middle" font-size="12">Choisir la vitesse</text></g>
+        <g class="hit" data-k="cu-principal"><ellipse class="shape" cx="292" cy="240" rx="106" ry="25" fill="var(--card)" stroke="var(--ink)" stroke-width="1.8"/><text x="292" y="245" text-anchor="middle" font-size="13" font-weight="700">S'entraîner à la course à pied</text></g>
+        <g class="hit" data-k="cu-perf"><ellipse class="shape" cx="400" cy="315" rx="84" ry="24" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="400" y="311" text-anchor="middle" font-size="12">Enregistrer les</text><text x="400" y="326" text-anchor="middle" font-size="12">performances</text></g>
+        <g class="hit" data-k="cu-env"><ellipse class="shape" cx="265" cy="384" rx="88" ry="24" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="265" y="380" text-anchor="middle" font-size="12">S'adapter à</text><text x="265" y="395" text-anchor="middle" font-size="12">l'environnement</text></g>
+        <!-- acteurs secondaires -->
+        <g class="hit" data-k="chose"><rect class="shape" x="540" y="180" width="50" height="44" fill="var(--ok-soft)" stroke="var(--info)" stroke-width="1.5"/><text x="565" y="240" text-anchor="middle" font-size="12">Énergie</text><text x="565" y="254" text-anchor="middle" font-size="12">électrique</text></g>
+        <g class="hit" data-k="chose"><rect class="shape" x="540" y="362" width="50" height="44" fill="var(--ok-soft)" stroke="var(--info)" stroke-width="1.5"/><text x="565" y="420" text-anchor="middle" font-size="12">Local</text></g>
+        <!-- étiquettes à compléter -->
+        <g class="rel" data-ans="include" data-x="262" data-y="160"></g>
+        <g class="rel" data-ans="include" data-x="358" data-y="90"></g>
+        <g class="rel" data-ans="include" data-x="345" data-y="116"></g>
+        <g class="rel" data-ans="extend" data-x="372" data-y="272"></g>
+      </svg></div>
+      <div class="panel" id="ucdpanel" aria-live="polite"><h3>Clique sur un élément</h3><p class="muted">L'acteur, un cas d'utilisation, le cadre du système, un acteur secondaire…</p></div>
+    </div>
+    <div class="row"><button class="btn primary" id="ucdcheck">Vérifier les relations</button><span class="fb" id="ucdfb"></span></div>
+  </div>
+  <div class="tablebox"><table class="legend-t">
+    <tr><th>Élément</th><th>Signification</th></tr>
+    <tr><td>Cadre « ucd … »</td><td>Le système étudié</td></tr>
+    <tr><td>Bonhomme</td><td>Acteur humain. Les acteurs principaux sont à gauche du système.</td></tr>
+    <tr><td>Bloc</td><td>Une « chose » en interaction avec le système (énergie, local…). Les acteurs secondaires sont à droite.</td></tr>
+    <tr><td>Ellipse</td><td>Un cas d'utilisation : une action que le système permet d'accomplir.</td></tr>
+    <tr><td class="mono">«include»</td><td>La fonction pointée est <strong>indispensable</strong> à la fonction principale.</td></tr>
+    <tr><td class="mono">«extend»</td><td>La fonction pointée n'est <strong>pas indispensable</strong>, c'est une option.</td></tr>
+  </table></div>
+</section>
+
+<!-- 3 REQ -->
+<section class="frame" id="req" role="tabpanel" aria-labelledby="tab-req">
+  <div class="tab"><b>req</b>Tapis de course</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Le diagramme d'exigences</h2>
+      <p>Chaque cas d'utilisation est ensuite précisé, avec des <strong>performances chiffrées</strong>, dans le diagramme d'exigences <strong>req</strong> (<em>Requirement diagram</em>).</p>
+      <p>Exemple : l'exigence 2.1 « Faire défiler le tapis » impose une vitesse de <span class="mono">1 km/h</span> à <span class="mono">18 km/h</span> par pas de <span class="mono">±1 km/h</span>. L'exigence 2.2 « Incliner le tapis » impose une pente de <span class="mono">0 %</span> à <span class="mono">10 %</span> par pas de <span class="mono">1 %</span>.</p>
+    </div>
+    <div class="tablebox"><table class="legend-t">
+      <tr><th>Symbole</th><th>Signification</th></tr>
+      <tr><td class="mono">⊕ (contenance)</td><td>Une exigence générale est composée d'exigences plus détaillées.</td></tr>
+      <tr><td class="mono">«refine»</td><td>Ajoute des précisions sur l'élément pointé.</td></tr>
+      <tr><td class="mono">«satisfy»</td><td>Ce composant répond à l'exigence pointée. C'est souvent le nom d'un objet.</td></tr>
+    </table></div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité 3</span><h3>Quel composant satisfait chaque exigence ?</h3></div>
+    <p class="muted">On passe des fonctions à la structure : choisis pour chaque exigence détaillée le composant relié par «satisfy».</p>
+    <div class="tree" id="reqtree"></div>
+    <div class="row"><button class="btn primary" id="reqcheck">Vérifier</button><span class="fb" id="reqfb"></span></div>
+  </div>
+</section>
+
+<!-- 4 ENERGIE -->
+<section class="frame" id="energie" role="tabpanel" aria-labelledby="tab-energie">
+  <div class="tab"><b>§3</b>Flux d'énergie et d'information</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Énergie et puissance</h2>
+      <p>Pour fonctionner, un système a besoin d'<strong>énergie</strong>, exprimée en joules (J) ou en wattheures (Wh).</p>
+      <p>La <strong>puissance</strong> est un débit d'énergie. Deux systèmes de puissances différentes peuvent fournir le même travail, mais le plus puissant le fera plus vite. Elle s'exprime en watts : 1 W = 1 J/s.</p>
+    </div>
+    <div class="key mono" style="display:grid;gap:6px;font-size:.95rem">
+      <span><strong style="font-family:var(--f-display)">À retenir</strong></span>
+      <span>E = P × t &nbsp;&nbsp;(J = W × s)</span>
+      <span>1 Wh = 3 600 J</span>
+      <span>P = e × f &nbsp;&nbsp;(effort × flux)</span>
+    </div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité 4</span><h3>Complète la colonne « Puissance échangée »</h3></div>
+    <p class="muted">La puissance échangée entre deux composants est le produit d'une grandeur d'<b style="color:var(--elec)">effort</b> et d'une grandeur de <b style="color:var(--meca)">flux</b>. Choisis une formule, puis clique sur la case du bon domaine.</p>
+    <div class="chips" id="pchips"></div>
+    <div class="tablebox"><table class="ptab">
+      <thead><tr><th>Domaine</th><th><span class="f">Flux f</span></th><th><span class="e">Effort e</span></th><th>P = e × f</th></tr></thead>
+      <tbody>
+        <tr><td>Électrique</td><td>Intensité I (A)</td><td>Tension U (V)</td><td><button class="slot" data-ans="P = U × I">…</button></td></tr>
+        <tr><td>Mécanique (translation)</td><td>Vitesse v (m·s⁻¹)</td><td>Force F (N)</td><td><button class="slot" data-ans="P = F × v">…</button></td></tr>
+        <tr><td>Mécanique (rotation)</td><td>Vitesse angulaire ω (rad·s⁻¹)</td><td>Couple C (N·m)</td><td><button class="slot" data-ans="P = C × ω">…</button></td></tr>
+        <tr><td>Hydraulique</td><td>Débit Q (m³·s⁻¹)</td><td>Pression p (Pa)</td><td><button class="slot" data-ans="P = p × Q">…</button></td></tr>
+      </tbody>
+    </table></div>
+    <span class="fb" id="pfb"></span>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Calculateur</span><h3>Le moteur du tapis pendant une séance</h3></div>
+    <div class="calc">
+      <label for="cU">Tension U (V)<input id="cU" type="number" value="230" step="1"></label>
+      <label for="cI">Intensité I (A)<input id="cI" type="number" value="6.5" step="0.1"></label>
+      <label for="cT">Durée (min)<input id="cT" type="number" value="45" step="1"></label>
+      <div><div class="muted" style="font-size:.85rem;font-weight:600">Résultats</div><div class="result" id="cRes"></div></div>
+    </div>
+    <p class="muted" id="cExp" style="font-size:.92rem"></p>
+  </div>
+</section>
+
+<!-- 5 RENDEMENT -->
+<section class="frame" id="rendement" role="tabpanel" aria-labelledby="tab-rendement">
+  <div class="tab"><b>§3</b>Le rendement</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Le rendement η</h2>
+      <p>Le rendement mesure l'efficacité énergétique d'un composant. Il est compris entre 0 et 1, souvent exprimé en pourcentage.</p>
+      <p>Un rendement de 0,85 signifie qu'on récupère 85 % de la puissance d'entrée ; les 15 % restants sont dissipés, le plus souvent en chaleur et en vibrations.</p>
+    </div>
+    <div class="key mono" style="display:grid;gap:8px;font-size:1rem">
+      <span>η = P<sub>sortie</sub> / P<sub>entrée</sub></span>
+      <span>η<sub>global</sub> = η₁ × η₂ × … × η<sub>n</sub></span>
+      <span style="font-family:var(--f-body);font-size:.92rem">Le rendement global d'une chaîne est le <strong>produit</strong> des rendements intermédiaires.</span>
+    </div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité 5</span><h3>Simulateur : électrique ou thermique ?</h3></div>
+    <p class="muted">Charge une chaîne, puis fais varier les rendements avec les curseurs. Observe la puissance perdue à chaque étape.</p>
+    <div class="row">
+      <button class="btn" data-preset="zoe">Voiture électrique (moteur 90 %)</button>
+      <button class="btn" data-preset="clio">Voiture essence (moteur 30 %)</button>
+      <button class="btn" data-preset="tapis">Tapis de course</button>
+    </div>
+    <div class="chain" id="chain"></div>
+    <div class="bars" id="bars"></div>
+    <div class="row" style="align-items:flex-start;gap:16px">
+      <div style="display:grid;gap:6px;flex:1;min-width:240px">
+        <label for="etaGuess" style="font-weight:700">Question : avec la voiture essence, quel est η<sub>global</sub> en % (arrondi à l'unité) ?</label>
+        <div class="row"><input id="etaGuess" type="number" min="0" max="100" style="font:600 1rem var(--f-mono);padding:8px;width:110px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)"><button class="btn primary" id="etaCheck">Vérifier</button></div>
+        <span class="fb" id="etaFb"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 CHAINES -->
+<section class="frame" id="chaines" role="tabpanel" aria-labelledby="tab-chaines">
+  <div class="tab"><b>§3</b>Chaînes fonctionnelles</div>
+  <div class="prose">
+    <h2>Chaîne d'information, chaîne d'énergie</h2>
+    <p>La <strong>chaîne d'information</strong> <em>acquiert</em> des grandeurs physiques, les <em>traite</em>, puis <em>communique</em> des ordres et des messages. La <strong>chaîne d'énergie</strong> reçoit ces ordres : elle <em>alimente</em>, <em>distribue</em>, <em>convertit</em> et <em>transmet</em> l'énergie jusqu'à l'action sur la matière d'œuvre.</p>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité 6</span><h3>Range les composants du tapis</h3></div>
+    <p class="muted">Clique sur un composant, puis sur la fonction qu'il réalise.</p>
+    <div class="chips" id="pieces"></div>
+    <div class="bins">
+      <div class="chain-label" style="color:var(--info)">Chaîne d'information</div>
+      <div class="binrow" id="binsInfo"></div>
+      <div class="chain-label" style="color:var(--elec)">Chaîne d'énergie</div>
+      <div class="binrow" id="binsEnergie"></div>
+    </div>
+    <div class="row"><button class="btn primary" id="chCheck">Vérifier</button><button class="btn" id="chReset">Recommencer</button><span class="fb" id="chFb"></span></div>
+  </div>
+</section>
+
+<!-- 7 IBD -->
+<section class="frame" id="ibd" role="tabpanel" aria-labelledby="tab-ibd">
+  <div class="tab"><b>ibd</b>Tapis de course</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Le diagramme de blocs internes</h2>
+      <p>L'<strong>ibd</strong> (<em>Internal Block Diagram</em>) montre les composants (<em>parts</em>) et les flux de matière, d'énergie et d'information qui circulent entre eux par des <strong>ports</strong> : entrants, sortants, ou dans les deux sens.</p>
+    </div>
+    <div class="key">Code couleur du cours : <b style="color:var(--info)">vert</b> pour l'information, <b style="color:var(--elec)">rouge</b> pour l'énergie électrique, <b style="color:var(--meca)">bleu</b> pour l'énergie mécanique.</div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité 7</span><h3>Repasse chaque flux de la bonne couleur</h3></div>
+    <div class="pens" id="pens">
+      <button class="pen sel" data-c="info"><i style="background:var(--info)"></i>Information</button>
+      <button class="pen" data-c="elec"><i style="background:var(--elec)"></i>Énergie électrique</button>
+      <button class="pen" data-c="meca"><i style="background:var(--meca)"></i>Énergie mécanique</button>
+    </div>
+    <div class="svgbox"><svg id="ibdsvg" viewBox="0 0 690 330" role="img" aria-label="Diagramme de blocs internes du tapis de course">
+      <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="var(--ink)"/></marker></defs>
+      <rect x="10" y="10" width="670" height="310" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+      <path d="M10 10 H232 L246 22 V34 H10 Z" fill="var(--card)" stroke="var(--ink)" stroke-width="1.2"/>
+      <text x="18" y="27" font-size="12" font-family="JetBrains Mono, monospace">ibd Tapis de course</text>
+      <g id="links"></g>
+      <g font-size="12.5" font-weight="700">
+        <rect x="240" y="48" width="104" height="72" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="292" y="80" text-anchor="middle">Carte de</text><text x="292" y="95" text-anchor="middle">commande</text>
+        <rect x="440" y="66" width="90" height="36" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="485" y="89" text-anchor="middle">Écran</text>
+        <rect x="110" y="232" width="100" height="44" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="160" y="251" text-anchor="middle">Carte de</text><text x="160" y="266" text-anchor="middle">puissance</text>
+        <rect x="256" y="232" width="84" height="44" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="298" y="259" text-anchor="middle">Moteur</text>
+        <rect x="380" y="232" width="104" height="44" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="432" y="251" text-anchor="middle">Système</text><text x="432" y="266" text-anchor="middle">poulies-courroie</text>
+        <rect x="522" y="232" width="86" height="44" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="565" y="259" text-anchor="middle">Rouleaux</text>
+      </g>
+      <g font-size="11" fill="var(--muted)"><text x="40" y="58">info clavier</text><text x="22" y="290">secteur 230 V</text><text x="612" y="292">action sur</text><text x="612" y="305">le tapis</text></g>
+    </svg></div>
+    <div class="row"><button class="btn primary" id="ibdCheck">Vérifier</button><button class="btn" id="ibdReset">Effacer</button><span class="fb" id="ibdFb"></span></div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section class="frame" id="quiz" role="tabpanel" aria-labelledby="tab-quiz">
+  <div class="tab"><b>bilan</b>Est-ce que j'ai compris ?</div>
+  <div class="prose"><h2>Quiz final</h2><p class="muted">Une seule réponse par question. L'explication s'affiche après ton choix.</p></div>
+  <div class="qz" id="qz"></div>
+  <div class="final" id="final" hidden><span class="mono muted">Score</span><span class="big" id="finalScore"></span><span id="finalMsg"></span><div><button class="btn" id="qzReset">Refaire le quiz</button></div></div>
+</section>
+
+<!-- EVALUATION FORMATIVE -->
+<section class="frame" id="eval" role="tabpanel" aria-labelledby="tab-eval">
+  <div class="tab"><b>éval</b>Évaluation formative · Vélo à assistance électrique</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Évaluation formative</h2>
+      <p>Nouveau système, mêmes outils : tu appliques tout le cours à un <strong>vélo à assistance électrique</strong> (VAE). Le moteur n'aide le cycliste que lorsqu'il pédale.</p>
+      <p>Cette évaluation n'est pas notée. Elle te montre ce que tu maîtrises et ce qu'il faut revoir, compétence par compétence.</p>
+      <p class="muted">Réponds à toutes les questions, puis clique sur « Corriger ». Pour les nombres, la virgule et le point sont acceptés.</p>
+    </div>
+    <div class="spec" aria-label="Caractéristiques du vélo">
+      <div class="sh"><small>«block»</small>Vélo à assistance électrique</div>
+      <dl>
+        <dt>Batterie</dt><dd>36 V · 14 Ah</dd>
+        <dt>Moteur</dt><dd>dans le moyeu de la roue, 250 W</dd>
+        <dt>Capteur</dt><dd>capteur de pédalage</dd>
+        <dt>Contrôleur</dt><dd>microcontrôleur + étage de puissance</dd>
+        <dt>Interface</dt><dd>écran au guidon</dd>
+        <dt>Assistance</dt><dd>coupée au-delà de 25 km/h</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="qz" id="evalBody"></div>
+  <div class="row"><button class="btn primary" id="evalCheck">Corriger</button><button class="btn" id="evalReset">Recommencer</button><span class="fb" id="evalFb"></span></div>
+  <div class="bilan" id="evalBilan" hidden></div>
+</section>
+
+<footer>Cours « Analyse des systèmes », Spé SI 1<sup>re</sup>, Lycée Bamana.</footer>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const NS="http://www.w3.org/2000/svg";
+const STEPS=["besoin","ucd","req","energie","rendement","chaines","ibd","quiz","eval"];
+let done=new Set();
+try{const s=JSON.parse(localStorage.getItem("as-done")||"[]");s.forEach(x=>done.add(x))}catch(e){}
+function mark(id){done.add(id);try{localStorage.setItem("as-done",JSON.stringify([...done]))}catch(e){}render()}
+function render(){
+  $$("#navlinks .tabbtn").forEach((a,i)=>a.classList.toggle("done",done.has(STEPS[i])));
+  $("#progress").textContent=done.size+"/"+STEPS.length;
+  $("#meter").style.width=(done.size/STEPS.length*100)+"%";
+}
+render();
+
+/* onglets */
+const tabBtns=$$("#navlinks .tabbtn");
+function show(id,focus){
+  if(!STEPS.includes(id))id="besoin";
+  $$("section.frame").forEach(s=>s.hidden=s.id!==id);
+  tabBtns.forEach(b=>{const on=b.dataset.t===id;b.setAttribute("aria-selected",on?"true":"false");b.tabIndex=on?0:-1;
+    if(on){const nl=$("#navlinks");nl.scrollLeft=Math.max(0,b.offsetLeft-nl.offsetLeft-40);if(focus)b.focus();}});
+  const top=$("#tabs-top").getBoundingClientRect().top+window.scrollY;
+  if(window.scrollY>top)window.scrollTo({top:top});
+  try{localStorage.setItem("as-tab",id)}catch(e){}
+}
+tabBtns.forEach((b,i)=>{
+  b.addEventListener("click",()=>show(b.dataset.t));
+  b.addEventListener("keydown",e=>{let j=null;
+    if(e.key==="ArrowRight")j=(i+1)%tabBtns.length;else if(e.key==="ArrowLeft")j=(i-1+tabBtns.length)%tabBtns.length;
+    else if(e.key==="Home")j=0;else if(e.key==="End")j=tabBtns.length-1;
+    if(j!==null){e.preventDefault();show(tabBtns[j].dataset.t,true)}});
+});
+STEPS.forEach((id,i)=>{
+  const pg=document.createElement("div");pg.className="pager";
+  if(i>0){const b=document.createElement("button");b.className="btn";b.textContent="← "+tabBtns[i-1].textContent.replace(" ✓","");b.addEventListener("click",()=>show(STEPS[i-1]));pg.appendChild(b)}
+  if(i<STEPS.length-1){const b=document.createElement("button");b.className="btn primary";b.textContent="Suite : "+tabBtns[i+1].textContent+" →";b.addEventListener("click",()=>show(STEPS[i+1]));pg.appendChild(b)}
+  document.getElementById(id).appendChild(pg);
+});
+let startTab="besoin";
+try{const h=(location.hash||"").slice(1);if(STEPS.includes(h))startTab=h;else{const t=localStorage.getItem("as-tab");if(STEPS.includes(t))startTab=t}}catch(e){}
+show(startTab);
+function fb(el,ok,msg){el.className="fb "+(ok?"ok":"bad");el.textContent=msg}
+
+/* 1. flip cards */
+const besoins=["Produire de l'électricité sans combustible, à partir d'une énergie renouvelable.","Communiquer, s'informer et se divertir partout, avec un seul objet de poche.","Se déplacer en sécurité sans avoir à conduire soi-même.","Courir en intérieur, quelle que soit la météo, avec une vitesse et une pente maîtrisées."];
+let flipped=0;
+$$("#flips .flip").forEach((b,i)=>b.addEventListener("click",()=>{
+  if(b.getAttribute("aria-expanded")==="true")return;
+  b.setAttribute("aria-expanded","true");b.querySelector(".a").textContent=besoins[i];
+  if(++flipped===4)mark("besoin");
+}));
+
+/* 2. UCD */
+const ucdInfo={
+  systeme:["Le système","Le cadre délimite le système étudié. Tout ce qui est dedans est réalisé par le tapis."],
+  acteur:["Acteur principal","Un acteur humain qui utilise le système. Les acteurs principaux sont placés à gauche du cadre."],
+  chose:["Acteur secondaire","Une « chose » en interaction avec le système : ici l'énergie électrique ou le local d'installation. Placée à droite."],
+  "cu-principal":["Cas d'utilisation principal","C'est la fonction principale du tapis. Les autres cas s'y rattachent par «include» ou «extend»."],
+  "cu-programme":["Cas d'utilisation","Choisir un programme d'entraînement. On ne peut pas s'entraîner sans régler un programme."],
+  "cu-inclinaison":["Cas d'utilisation","Choisir l'inclinaison fait obligatoirement partie du choix d'un programme."],
+  "cu-vitesse":["Cas d'utilisation","Choisir la vitesse fait obligatoirement partie du choix d'un programme."],
+  "cu-perf":["Cas d'utilisation","Enregistrer ses performances, « s'il le souhaite » : c'est une option."],
+  "cu-env":["Cas d'utilisation","S'adapter à l'environnement : le tapis doit tenir dans le local et respecter ses contraintes (place, sol, alimentation)."]
+};
+$$("#ucdsvg .hit").forEach(g=>{g.setAttribute("tabindex","0");
+  const go=()=>{$$("#ucdsvg .hit").forEach(x=>x.classList.remove("sel"));g.classList.add("sel");
+    const [t,d]=ucdInfo[g.dataset.k];$("#ucdpanel").innerHTML="<h3></h3><p></p>";$("#ucdpanel h3").textContent=t;$("#ucdpanel p").textContent=d;};
+  g.addEventListener("click",go);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
+});
+const relVals=["?","include","extend"];
+$$("#ucdsvg .rel").forEach(g=>{
+  const x=+g.dataset.x,y=+g.dataset.y;g.dataset.v="0";g.setAttribute("tabindex","0");g.style.cursor="pointer";
+  const r=document.createElementNS(NS,"rect");r.setAttribute("x",x-40);r.setAttribute("y",y-11);r.setAttribute("width",80);r.setAttribute("height",20);r.setAttribute("rx",3);
+  r.setAttribute("fill","var(--card)");r.setAttribute("stroke","var(--accent)");r.setAttribute("stroke-width","1.5");
+  const t=document.createElementNS(NS,"text");t.setAttribute("x",x);t.setAttribute("y",y+4);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","11");t.setAttribute("font-family","JetBrains Mono, monospace");t.textContent="« ? »";
+  g.append(r,t);
+  const cyc=()=>{let v=(+g.dataset.v+1)%3;if(v===0)v=1;g.dataset.v=v;t.textContent="«"+relVals[v]+"»";r.setAttribute("stroke","var(--accent)");};
+  g.addEventListener("click",cyc);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();cyc()}});
+});
+$("#ucdcheck").addEventListener("click",()=>{
+  let ok=0,empty=0;$$("#ucdsvg .rel").forEach(g=>{const v=relVals[+g.dataset.v];const r=g.querySelector("rect");
+    if(v==="?"){empty++;return}
+    const good=v===g.dataset.ans;if(good)ok++;r.setAttribute("stroke",good?"var(--ok)":"var(--bad)");});
+  if(empty)return fb($("#ucdfb"),false,"Il reste "+empty+" étiquette(s) à compléter.");
+  if(ok===4){fb($("#ucdfb"),true,"Parfait ! Enregistrer les performances est la seule option : «extend».");mark("ucd")}
+  else fb($("#ucdfb"),false,ok+"/4 correctes. Demande-toi : peut-on s'entraîner sans cette fonction ?");
+});
+
+/* 3. REQ */
+const comps=["Clavier","Carte de commande","Moteur","Système poulies-courroie","Rouleaux","Rouleaux avant et arrière"];
+const reqs=[
+  ["1","Faire défiler le tapis",1],
+  ["1.1","Adapter la vitesse du tapis à l'utilisateur",2],
+  ["1.1.1","Acquérir la vitesse souhaitée",3,"Clavier"],
+  ["1.1.2","Générer la consigne de vitesse",3,"Carte de commande"],
+  ["1.2","Mettre en mouvement le tapis",2],
+  ["1.2.1","Transformer l'énergie électrique en énergie mécanique",3,"Moteur"],
+  ["1.2.2","Adapter le mouvement de rotation",3,"Système poulies-courroie"],
+  ["1.2.3","Transformer la rotation en translation du tapis",3,"Rouleaux"],
+  ["1.3","Guider le tapis",2,"Rouleaux avant et arrière"]
+];
+const tree=$("#reqtree");
+reqs.forEach(([id,txt,l,ans],i)=>{
+  const d=document.createElement("div");d.className="req l"+l;
+  d.innerHTML='<span class="id"></span><span class="t"></span>';d.querySelector(".id").textContent=id;d.querySelector(".t").textContent=txt;
+  if(ans){const s=document.createElement("select");s.id="rq"+i;s.dataset.ans=ans;s.setAttribute("aria-label","Composant pour "+id);
+    s.innerHTML='<option value="">«satisfy» …</option>'+comps.map(c=>'<option>'+c+'</option>').join("");d.appendChild(s);}
+  else d.appendChild(document.createElement("span"));
+  tree.appendChild(d);
+});
+$("#reqcheck").addEventListener("click",()=>{
+  let ok=0,n=0;$$("#reqtree select").forEach(s=>{n++;const row=s.parentElement;row.classList.remove("good","wrong");
+    if(!s.value)return;const g=s.value===s.dataset.ans;if(g)ok++;row.classList.add(g?"good":"wrong")});
+  if(ok===n){fb($("#reqfb"),true,"Bravo ! Tu viens de passer des fonctions (le « quoi ») à la structure (le « avec quoi »).");mark("req")}
+  else fb($("#reqfb"),false,ok+"/"+n+" correctes. Relis le verbe de chaque exigence : acquérir, générer, transformer, adapter, guider.");
+});
+
+/* 4. puissance */
+const formulas=["P = U × I","P = F × v","P = C × ω","P = p × Q"].sort(()=>Math.random()-.5);
+let selF=null;
+formulas.forEach(f=>{const c=document.createElement("button");c.className="chip";c.textContent=f;
+  c.addEventListener("click",()=>{$$("#pchips .chip").forEach(x=>x.classList.remove("sel"));c.classList.add("sel");selF=c});$("#pchips").appendChild(c)});
+let pdone=0;
+$$(".slot").forEach(s=>s.addEventListener("click",()=>{
+  if(s.classList.contains("good"))return;
+  if(!selF)return fb($("#pfb"),false,"Choisis d'abord une formule.");
+  if(selF.textContent===s.dataset.ans){s.textContent=s.dataset.ans;s.classList.add("good");selF.classList.add("used");selF.classList.remove("sel");selF=null;
+    if(++pdone===4){fb($("#pfb"),true,"Tableau complet. Partout : effort × flux.");mark("energie")}else fb($("#pfb"),true,"Correct !");}
+  else fb($("#pfb"),false,"Pas cette ligne : repère l'effort et le flux de ce domaine.");
+}));
+function calc(){
+  const U=+$("#cU").value,I=+$("#cI").value,t=+$("#cT").value;
+  const P=U*I,Wh=P*t/60,J=P*t*60;
+  const f=(x,d=0)=>x.toLocaleString("fr-FR",{maximumFractionDigits:d});
+  $("#cRes").innerHTML="P = "+f(P)+" W<br>E = "+f(Wh)+" Wh";
+  $("#cExp").textContent="P = U × I = "+f(U)+" × "+f(I,2)+" = "+f(P)+" W. E = P × t = "+f(P)+" W × "+f(t/60,2)+" h = "+f(Wh)+" Wh, soit "+f(J)+" J (1 Wh = 3 600 J).";
+}
+["#cU","#cI","#cT"].forEach(s=>$(s).addEventListener("input",calc));calc();
+
+/* 5. rendement */
+const presets={
+  zoe:{pin:22.1,label:"Prise",stages:[["Moteur électrique",90],["Transmission",99]],end:"Roues"},
+  clio:{pin:64.2,label:"Carburant",stages:[["Moteur thermique",30],["Boîte de vitesses",95],["Transmission",99]],end:"Roues"},
+  tapis:{pin:1.5,label:"Secteur",stages:[["Carte de puissance",95],["Moteur",85],["Poulies-courroie",96],["Rouleaux",97]],end:"Bande"}
+};
+let cur;
+function load(k){cur=JSON.parse(JSON.stringify(presets[k]));cur.key=k;
+  $$("[data-preset]").forEach(b=>b.classList.toggle("primary",b.dataset.preset===k));drawChain();}
+function f1(x){return x.toLocaleString("fr-FR",{minimumFractionDigits:1,maximumFractionDigits:2})}
+function drawChain(){
+  const ch=$("#chain");ch.innerHTML="";let p=cur.pin;
+  const a0=document.createElement("div");a0.className="arrow in";a0.innerHTML='<span></span><div class="ar"></div><span></span>';
+  a0.children[0].textContent=cur.label;a0.children[2].textContent=f1(p)+" kW";ch.appendChild(a0);
+  const levels=[p];
+  cur.stages.forEach((s,i)=>{
+    const st=document.createElement("div");st.className="stage";
+    st.innerHTML='<h4></h4><label class="mono" style="font-size:.85rem">η = <b></b> %</label><input type="range" min="10" max="100" step="1"><span class="loss"></span>';
+    st.querySelector("h4").textContent=s[0];const r=st.querySelector("input");r.value=s[1];r.id="eta"+i;r.setAttribute("aria-label","Rendement "+s[0]);
+    st.querySelector("b").textContent=s[1];
+    const pout=p*s[1]/100;st.querySelector(".loss").textContent="pertes : "+f1(p-pout)+" kW";
+    r.addEventListener("input",()=>{cur.stages[i][1]=+r.value;drawChain();const nr=$("#eta"+i);nr&&nr.focus()});
+    ch.appendChild(st);p=pout;levels.push(p);
+    const a=document.createElement("div");a.className="arrow";a.innerHTML='<div class="ar"></div><span></span>';a.children[1].textContent=f1(p)+" kW";ch.appendChild(a);
+  });
+  const eta=cur.stages.reduce((m,s)=>m*s[1]/100,1);
+  const b=$("#bars");b.innerHTML="";
+  const rows=[["Puissance d'entrée",cur.pin,"var(--meca)"],["Puissance utile",p,"var(--ok)"],["Pertes (chaleur…)",cur.pin-p,"var(--bad)"]];
+  rows.forEach(([l,v,c])=>{const d=document.createElement("div");d.className="bar";
+    d.innerHTML='<span></span><div class="track"><div class="fill"></div></div><span class="mono"></span>';
+    d.children[0].textContent=l;d.querySelector(".fill").style.width=(v/cur.pin*100)+"%";d.querySelector(".fill").style.background=c;d.children[2].textContent=f1(v)+" kW";b.appendChild(d)});
+  const d=document.createElement("div");d.className="mono";d.style.fontWeight="700";
+  d.textContent="η global = "+cur.stages.map(s=>(s[1]/100).toFixed(2).replace(".",",")).join(" × ")+" = "+(eta*100).toFixed(1).replace(".",",")+" %";b.appendChild(d);
+}
+$$("[data-preset]").forEach(b=>b.addEventListener("click",()=>load(b.dataset.preset)));load("zoe");
+$("#etaCheck").addEventListener("click",()=>{
+  const v=+$("#etaGuess").value;
+  if(Math.round(v)===28){fb($("#etaFb"),true,"Oui : 0,30 × 0,95 × 0,99 ≈ 0,28, soit 28 %. Plus de 70 % de l'énergie du carburant part en chaleur.");mark("rendement")}
+  else fb($("#etaFb"),false,"Pas tout à fait. Multiplie les trois rendements de la chaîne essence (charge-la pour les voir).");
+});
+
+/* 6. chaînes */
+const binsDef={info:[["Acquérir","capteurs, IHM"],["Traiter","microcontrôleur, programme"],["Communiquer","ordres, messages"]],
+  energie:[["Alimenter","réseau, batterie"],["Distribuer","relais, variateur"],["Convertir","moteur, vérin"],["Transmettre","poulies, réducteur"]]};
+const piecesDef=[["Clavier","Acquérir"],["Carte de commande","Traiter"],["Écran","Communiquer"],["Prise secteur 230 V","Alimenter"],["Carte de puissance","Distribuer"],["Moteur","Convertir"],["Système poulies-courroie","Transmettre"],["Rouleaux","Transmettre"]];
+let selP=null;
+function buildChains(){
+  $("#pieces").innerHTML="";$("#binsInfo").innerHTML="";$("#binsEnergie").innerHTML="";selP=null;
+  [["info","#binsInfo"],["energie","#binsEnergie"]].forEach(([k,sel])=>binsDef[k].forEach(([n,h])=>{
+    const b=document.createElement("button");b.className="bin";b.dataset.f=n;b.innerHTML='<span class="bh"></span>';
+    b.querySelector(".bh").textContent=n;const sm=document.createElement("small");sm.textContent=h;b.querySelector(".bh").appendChild(sm);
+    b.addEventListener("click",e=>{if(e.target.closest(".piece"))return;if(!selP)return;b.appendChild(selP);selP.classList.remove("sel");selP=null;});
+    $(sel).appendChild(b)}));
+  [...piecesDef].sort(()=>Math.random()-.5).forEach(([n,f])=>{const p=document.createElement("span");p.className="piece";p.tabIndex=0;p.setAttribute("role","button");p.textContent=n;p.dataset.ans=f;
+    const pick=e=>{e.stopPropagation();$$(".piece").forEach(x=>x.classList.remove("sel"));p.classList.remove("good","wrong");p.classList.add("sel");selP=p};
+    p.addEventListener("click",pick);p.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(e)}});
+    $("#pieces").appendChild(p)});
+  $("#chFb").textContent="";
+}
+buildChains();
+$("#chReset").addEventListener("click",buildChains);
+$("#chCheck").addEventListener("click",()=>{
+  const left=$$("#pieces .piece").length;
+  if(left)return fb($("#chFb"),false,"Il reste "+left+" composant(s) à ranger.");
+  let ok=0;$$(".bin .piece").forEach(p=>{const g=p.closest(".bin").dataset.f===p.dataset.ans;p.classList.toggle("good",g);p.classList.toggle("wrong",!g);if(g)ok++});
+  if(ok===piecesDef.length){fb($("#chFb"),true,"Tout est juste ! La carte de commande envoie l'ordre, la carte de puissance distribue l'énergie au moteur.");mark("chaines")}
+  else fb($("#chFb"),false,ok+"/"+piecesDef.length+". Clique sur un composant en rouge pour le déplacer.");
+});
+
+/* 7. ibd */
+const links=[
+  ["M20 52 H238","info"],["M344 84 H438","info"],["M300 120 V180 H160 V230","info"],
+  ["M20 254 H108","elec"],["M70 254 V108 H238","elec"],["M210 254 H254","elec"],
+  ["M340 254 H378","meca"],["M484 254 H520","meca"],["M608 254 H672","meca"]
+];
+let pen="info";
+$$(".pen").forEach(b=>b.addEventListener("click",()=>{$$(".pen").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");pen=b.dataset.c}));
+const lg=$("#links");
+links.forEach(([d,a],i)=>{const g=document.createElementNS(NS,"g");g.setAttribute("class","lnk");g.dataset.ans=a;g.setAttribute("tabindex","0");
+  const h=document.createElementNS(NS,"path");h.setAttribute("d",d);h.setAttribute("class","hitp");
+  const v=document.createElementNS(NS,"path");v.setAttribute("d",d);v.setAttribute("class","vis");v.setAttribute("marker-end","url(#ah2)");
+  g.append(h,v);const paint=()=>{g.setAttribute("class","lnk c-"+pen);g.dataset.c=pen};
+  g.addEventListener("click",paint);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();paint()}});lg.appendChild(g)});
+$("#ibdReset").addEventListener("click",()=>{$$(".lnk").forEach(g=>{g.setAttribute("class","lnk");delete g.dataset.c});$("#ibdFb").textContent=""});
+$("#ibdCheck").addEventListener("click",()=>{
+  const all=$$(".lnk");const empty=all.filter(g=>!g.dataset.c).length;
+  if(empty)return fb($("#ibdFb"),false,"Il reste "+empty+" flux à colorier.");
+  let ok=0;all.forEach(g=>{const good=g.dataset.c===g.dataset.ans;if(good)ok++;g.classList.toggle("wrong",!good)});
+  if(ok===all.length){fb($("#ibdFb"),true,"Exact ! Le moteur est la frontière : avant lui l'énergie est électrique, après elle est mécanique.");mark("ibd")}
+  else fb($("#ibdFb"),false,ok+"/"+all.length+" corrects. Les flux en pointillés sont faux. Indice : la carte de commande est elle aussi alimentée.");
+});
+
+/* quiz */
+const Q=[
+  ["Dans un ucd, que signifie une flèche «extend» ?",["La fonction pointée est indispensable","La fonction pointée est optionnelle","La fonction pointée est réalisée par un composant","La fonction pointée est un acteur"],1,"«extend» : la fonction n'est pas indispensable à la fonction principale (ex. enregistrer ses performances)."],
+  ["Où place-t-on les acteurs secondaires sur un ucd ?",["À gauche du système","Dans le système","À droite du système","Au-dessus du système"],2,"Acteurs principaux à gauche, acteurs secondaires (énergie, local…) à droite."],
+  ["Dans un diagramme d'exigences, la relation «satisfy» relie…",["deux exigences de même niveau","un composant à l'exigence à laquelle il répond","un acteur à un cas d'utilisation","une exigence à sa valeur numérique"],1,"«satisfy» indique quel composant (objet) répond à l'exigence pointée."],
+  ["Un moteur fournit un couple de 2 N·m à 150 rad/s. Sa puissance mécanique vaut…",["75 W","152 W","300 W","3 000 W"],2,"P = C × ω = 2 × 150 = 300 W."],
+  ["Un appareil de 500 W fonctionne pendant 2 h. Il consomme…",["250 Wh","1 000 Wh","1 000 J","3 600 J"],1,"E = P × t = 500 W × 2 h = 1 000 Wh (soit 3,6 MJ)."],
+  ["Un moteur reçoit 1 000 W et en restitue 850 W. Son rendement est…",["0,15","0,85","1,18","850"],1,"η = Psortie / Pentrée = 850 / 1 000 = 0,85, soit 85 %."],
+  ["Deux étages en série : η₁ = 0,9 et η₂ = 0,8. Le rendement global vaut…",["0,72","0,85","1,7","0,1"],0,"Le rendement global est le produit : 0,9 × 0,8 = 0,72."],
+  ["Dans la chaîne d'énergie du tapis, le moteur réalise la fonction…",["Distribuer","Alimenter","Convertir","Transmettre"],2,"Le moteur convertit l'énergie électrique en énergie mécanique."],
+  ["Dans la chaîne d'information, le clavier du tapis réalise la fonction…",["Acquérir","Traiter","Communiquer","Distribuer"],0,"Le clavier acquiert la consigne de l'utilisateur (vitesse, programme)."],
+  ["Sur l'ibd, le flux entre le moteur et le système poulies-courroie est…",["de l'information","de l'énergie électrique","de l'énergie mécanique","de la matière d'œuvre"],2,"En sortie du moteur, l'énergie est mécanique (rotation)."]
+];
+let answered=0,good=0;
+function buildQuiz(){
+  answered=0;good=0;$("#qz").innerHTML="";$("#final").hidden=true;
+  Q.forEach(([q,opts,a,ex],i)=>{
+    const c=document.createElement("div");c.className="qcard";
+    c.innerHTML='<span class="num"></span><strong></strong><div class="opts"></div><p class="expl" hidden></p>';
+    c.querySelector(".num").textContent="Question "+(i+1)+" / "+Q.length;c.querySelector("strong").textContent=q;
+    const os=c.querySelector(".opts"),e=c.querySelector(".expl");e.textContent=ex;
+    opts.forEach((o,j)=>{const b=document.createElement("button");b.className="opt";b.textContent=o;
+      b.addEventListener("click",()=>{c.querySelectorAll(".opt").forEach(x=>x.disabled=true);
+        os.children[a].classList.add("good");if(j!==a)b.classList.add("wrong");else good++;e.hidden=false;
+        if(++answered===Q.length)finish();});os.appendChild(b)});
+    $("#qz").appendChild(c)});
+}
+function finish(){
+  $("#final").hidden=false;$("#finalScore").textContent=good+" / "+Q.length;
+  $("#finalMsg").textContent=good>=8?"Excellent, tu maîtrises l'analyse des systèmes.":good>=5?"Bon travail. Reprends les explications des questions ratées.":"Relis les parties 3 à 7 puis refais le quiz.";
+  if(good>=7)mark("quiz");
+}
+buildQuiz();$("#qzReset").addEventListener("click",buildQuiz);
+
+/* évaluation formative */
+const COMPS={
+  C1:["Lire et compléter un diagramme SysML","ucd","Revois les onglets ucd et req : «include» = indispensable, «extend» = optionnel ; «satisfy» relie un composant à l'exigence qu'il remplit."],
+  C2:["Calculer une énergie, une puissance","energie","Revois l'onglet Énergie : E = P × t, 1 Wh = 3 600 J, et P = effort × flux dans chaque domaine."],
+  C3:["Exploiter le rendement","rendement","Revois l'onglet Rendement : η = Psortie / Pentrée, et le rendement global est le produit des rendements."],
+  C4:["Identifier les chaînes et les flux","chaines","Revois les onglets Chaînes et ibd : quelle fonction réalise chaque composant, et quelle énergie sort du moteur."]
+};
+const REL=["include","extend"],PLACE=["Acteur principal (à gauche)","Acteur secondaire (à droite)","Cas d'utilisation (ellipse)"],
+  VCOMP=["Capteur de pédalage","Contrôleur","Moteur-roue","Batterie","Écran"],
+  FUNCS=["Acquérir","Traiter","Communiquer","Alimenter","Distribuer","Convertir","Transmettre"],
+  FLUX=["Information","Énergie électrique","Énergie mécanique"];
+const EV=[
+  {c:"C1",t:"Relations du ucd",p:"Le cas d'utilisation principal est « Se déplacer avec assistance ». Choisis la relation qui le relie à chaque cas.",items:[
+    {s:REL,l:"Détecter le pédalage",a:"include",e:"Sans pédalage détecté, pas d'assistance : c'est indispensable."},
+    {s:REL,l:"Afficher un itinéraire GPS",a:"extend",e:"On peut rouler sans GPS : c'est une option."},
+    {s:REL,l:"Fournir l'énergie au moteur",a:"include",e:"Sans énergie, le moteur ne peut pas assister : indispensable."}]},
+  {c:"C1",t:"Éléments du ucd",p:"Comment représente-t-on chaque élément sur le diagramme des cas d'utilisation ?",items:[
+    {s:PLACE,l:"Le cycliste",a:PLACE[0],e:"Humain qui utilise le système : acteur principal, à gauche."},
+    {s:PLACE,l:"La route et la météo",a:PLACE[1],e:"« Chose » en interaction avec le système : acteur secondaire, à droite."},
+    {s:PLACE,l:"Recharger la batterie",a:PLACE[2],e:"C'est une action rendue possible par le système : un cas d'utilisation."}]},
+  {c:"C1",t:"Relations «satisfy» du req",p:"Quel composant satisfait chaque exigence ?",items:[
+    {s:VCOMP,l:"Mesurer la cadence de pédalage",a:"Capteur de pédalage",e:"Un capteur acquiert une grandeur physique."},
+    {s:VCOMP,l:"Stocker l'énergie électrique",a:"Batterie",e:"La batterie est le réservoir d'énergie."},
+    {s:VCOMP,l:"Générer la consigne d'assistance",a:"Contrôleur",e:"Le contrôleur traite l'information et élabore la consigne."},
+    {s:VCOMP,l:"Transformer l'énergie électrique en énergie mécanique",a:"Moteur-roue",e:"C'est le rôle d'un moteur."}]},
+  {c:"C2",t:"Énergie de la batterie",p:"La batterie a une tension de 36 V et une capacité de 14 Ah, c'est-à-dire qu'elle peut débiter 14 A pendant 1 h.",items:[
+    {n:1,l:"Énergie stockée dans la batterie",u:"Wh",a:504,tol:1,e:"P = U × I = 36 × 14 = 504 W pendant 1 h, donc E = 504 Wh."},
+    {n:1,l:"Cette énergie en kilojoules",u:"kJ",a:1814.4,tol:5,e:"504 × 3 600 = 1 814 400 J ≈ 1 814 kJ."},
+    {n:1,l:"Durée de fonctionnement si le moteur absorbe 250 W en continu",u:"h",a:2.016,tol:0.06,e:"t = E / P = 504 / 250 ≈ 2,0 h."}]},
+  {c:"C2",t:"Puissance à la roue",p:"Le moteur-roue exerce un couple C = 40 N·m et tourne à ω = 5 rad/s.",items:[
+    {n:1,l:"Puissance mécanique fournie à la roue",u:"W",a:200,tol:1,e:"P = C × ω = 40 × 5 = 200 W."},
+    {s:["P = U × I","P = F × v","P = C × ω","P = p × Q"],l:"Formule de la puissance électrique absorbée par le moteur",a:"P = U × I",e:"Domaine électrique : tension (effort) × intensité (flux)."}]},
+  {c:"C3",t:"Rendements",p:"Le moteur absorbe 250 W électriques et fournit 200 W mécaniques. Le contrôleur, placé avant lui, a un rendement de 95 %.",items:[
+    {n:1,l:"Rendement du moteur",u:"%",a:80,tol:0.6,e:"η = 200 / 250 = 0,80, soit 80 %."},
+    {n:1,l:"Rendement global contrôleur + moteur",u:"%",a:76,tol:0.6,e:"η global = 0,95 × 0,80 = 0,76, soit 76 %."},
+    {n:1,l:"Puissance perdue dans le moteur",u:"W",a:50,tol:0.5,e:"250 − 200 = 50 W dissipés."},
+    {s:["Lumière","Chaleur","Énergie renvoyée à la batterie","Information"],l:"Forme principale de ces pertes",a:"Chaleur",e:"Les pertes sont surtout dissipées en chaleur (et un peu en vibrations)."}]},
+  {c:"C4",t:"Chaînes fonctionnelles",p:"Quelle fonction réalise chaque composant du VAE ?",items:[
+    {s:FUNCS,l:"Capteur de pédalage",a:"Acquérir",e:"Il mesure une grandeur physique."},
+    {s:FUNCS,l:"Microcontrôleur du contrôleur",a:"Traiter",e:"Il exécute le programme qui décide de l'assistance."},
+    {s:FUNCS,l:"Écran au guidon",a:"Communiquer",e:"Il transmet des messages au cycliste."},
+    {s:FUNCS,l:"Batterie",a:"Alimenter",e:"Elle fournit l'énergie électrique."},
+    {s:FUNCS,l:"Étage de puissance du contrôleur",a:"Distribuer",e:"Il module l'énergie envoyée au moteur selon l'ordre reçu."},
+    {s:FUNCS,l:"Moteur-roue",a:"Convertir",e:"Il convertit l'énergie électrique en énergie mécanique."},
+    {s:FUNCS,l:"Chaîne et pignons",a:"Transmettre",e:"Ils transmettent le mouvement du pédalier à la roue."}]},
+  {c:"C4",t:"Nature des flux (ibd)",p:"Quel flux circule entre ces deux blocs ?",items:[
+    {s:FLUX,l:"Batterie → contrôleur",a:"Énergie électrique",e:"La batterie alimente le contrôleur."},
+    {s:FLUX,l:"Capteur de pédalage → contrôleur",a:"Information",e:"Le capteur envoie une image de la cadence."},
+    {s:FLUX,l:"Contrôleur → moteur-roue",a:"Énergie électrique",e:"L'étage de puissance distribue l'énergie au moteur."},
+    {s:FLUX,l:"Moteur-roue → roue",a:"Énergie mécanique",e:"Après le moteur, l'énergie est mécanique."},
+    {s:FLUX,l:"Pédalier → chaîne",a:"Énergie mécanique",e:"Le cycliste fournit une énergie mécanique."}]}
+];
+let evForce=false;
+function buildEval(){
+  const body=$("#evalBody");body.innerHTML="";$("#evalBilan").hidden=true;$("#evalFb").textContent="";evForce=false;
+  EV.forEach((bl,bi)=>{
+    const d=document.createElement("div");d.className="eblock";
+    d.innerHTML='<div class="eh"><span class="comp"></span><h3></h3></div><p></p>';
+    d.querySelector(".comp").textContent=bl.c+" · "+COMPS[bl.c][0];d.querySelector("h3").textContent=(bi+1)+". "+bl.t;d.querySelector("p").textContent=bl.p;
+    bl.items.forEach((it,ii)=>{
+      const id="ev"+bi+"_"+ii,row=document.createElement("div");row.className="eitem";
+      const lab=document.createElement("label");lab.htmlFor=id;lab.textContent=it.l;row.appendChild(lab);
+      const w=document.createElement("div");
+      let ctl;
+      if(it.s){ctl=document.createElement("select");ctl.innerHTML='<option value="">Choisir…</option>';it.s.forEach(o=>{const op=document.createElement("option");op.textContent=o;ctl.appendChild(op)});}
+      else{ctl=document.createElement("input");ctl.type="text";ctl.inputMode="decimal";ctl.autocomplete="off";}
+      ctl.id=id;w.appendChild(ctl);
+      if(it.u){const u=document.createElement("span");u.className="unit";u.textContent=it.u;w.appendChild(u)}
+      row.appendChild(w);
+      const c=document.createElement("p");c.className="corr";c.hidden=true;row.appendChild(c);
+      d.appendChild(row);
+    });
+    body.appendChild(d);
+  });
+}
+function fmt(x){return x.toLocaleString("fr-FR",{maximumFractionDigits:2})}
+$("#evalCheck").addEventListener("click",()=>{
+  let empty=0;EV.forEach((bl,bi)=>bl.items.forEach((it,ii)=>{if(!document.getElementById("ev"+bi+"_"+ii).value.trim())empty++}));
+  if(empty&&!evForce){evForce=true;return fb($("#evalFb"),false,empty+" réponse(s) vide(s). Complète-les, ou clique à nouveau sur « Corriger » pour valider quand même.")}
+  const sc={};Object.keys(COMPS).forEach(k=>sc[k]=[0,0]);
+  EV.forEach((bl,bi)=>bl.items.forEach((it,ii)=>{
+    const ctl=document.getElementById("ev"+bi+"_"+ii),row=ctl.closest(".eitem"),c=row.querySelector(".corr");
+    let ok;
+    if(it.s)ok=ctl.value===it.a;
+    else{const v=parseFloat(ctl.value.replace(/\s/g,"").replace(",","."));ok=!isNaN(v)&&Math.abs(v-it.a)<=it.tol;}
+    sc[bl.c][1]++;if(ok)sc[bl.c][0]++;
+    row.classList.toggle("good",ok);row.classList.toggle("wrong",!ok);ctl.disabled=true;
+    c.hidden=false;c.textContent=(ok?"Juste. ":"Réponse attendue : "+(it.s?it.a:fmt(it.a)+" "+it.u)+". ")+it.e;
+  }));
+  let tot=0,max=0;Object.values(sc).forEach(([a,b])=>{tot+=a;max+=b});
+  $("#evalCheck").disabled=true;
+  fb($("#evalFb"),tot/max>=0.6,"Corrigé : "+tot+" / "+max+". Ton bilan est juste en dessous.");
+  const B=$("#evalBilan");B.hidden=false;B.innerHTML='<div><span class="mono muted">Mon bilan</span><div class="big" style="font:800 2.2rem var(--f-display);font-stretch:80%"></div></div><div class="tablebox"><table class="legend-t"><thead><tr><th>Compétence</th><th>Score</th><th>Niveau</th><th>Conseil</th></tr></thead><tbody></tbody></table></div>';
+  B.querySelector(".big").textContent=tot+" / "+max;
+  const tb=B.querySelector("tbody");
+  Object.entries(COMPS).forEach(([k,[name,tab,tip]])=>{
+    const [a,b]=sc[k],r=a/b,tr=document.createElement("tr");
+    const lv=r>=0.8?["a","Acquis"]:r>=0.5?["b","En cours"]:["c","À retravailler"];
+    tr.innerHTML='<td><strong></strong></td><td class="mono"></td><td><span class="lvl"></span></td><td></td>';
+    tr.children[0].firstChild.textContent=k+" · "+name;tr.children[1].textContent=a+" / "+b;
+    const l=tr.querySelector(".lvl");l.classList.add(lv[0]);l.textContent=lv[1];
+    if(lv[0]==="a")tr.children[3].textContent="Bravo, compétence maîtrisée.";
+    else{const p=document.createElement("p");p.textContent=tip;p.style.marginBottom="6px";const bt=document.createElement("button");bt.className="btn";bt.textContent="Revoir l'onglet";bt.addEventListener("click",()=>show(tab));tr.children[3].append(p,bt);}
+    tb.appendChild(tr);
+  });
+  mark("eval");
+});
+$("#evalReset").addEventListener("click",()=>{$("#evalCheck").disabled=false;buildEval()});
+buildEval();
+})();
+</script>
+
+</body></html>
