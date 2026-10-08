@@ -1,0 +1,565 @@
+<title>Atelier analyse des systèmes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : même cahier millimétré que le cours « Analyse des systèmes » ; un exercice par onglet, chacun encadré comme un diagramme SysML */
+:root{
+  --paper:#F3F5F4; --grid:#DCE3E0; --card:#FFFFFF; --ink:#18212B; --muted:#56636F; --line:#B9C4C1;
+  --accent:#E8A600; --accent-ink:#5A4000; --accent-soft:#FFF1C7;
+  --info:#1E8A4F; --elec:#D02B3A; --meca:#1F5FD6;
+  --ok:#1E8A4F; --ok-soft:#DDF3E6; --bad:#C02A37; --bad-soft:#FBE1E3;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#11171D; --grid:#1C252D; --card:#18212A; --ink:#E6ECEF; --muted:#9AA8B2; --line:#34424D;
+  --accent:#F2B92A; --accent-ink:#FFE3A0; --accent-soft:#3A2F10;
+  --info:#43C27C; --elec:#FF5F6B; --meca:#5E93FF;
+  --ok:#43C27C; --ok-soft:#173826; --bad:#FF6B76; --bad-soft:#3E1B20; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#11171D; --grid:#1C252D; --card:#18212A; --ink:#E6ECEF; --muted:#9AA8B2; --line:#34424D;
+  --accent:#F2B92A; --accent-ink:#FFE3A0; --accent-soft:#3A2F10;
+  --info:#43C27C; --elec:#FF5F6B; --meca:#5E93FF;
+  --ok:#43C27C; --ok-soft:#173826; --bad:#FF6B76; --bad-soft:#3E1B20; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:17px/1.55 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:980px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.1;margin:0}
+h1{font-size:clamp(2.1rem,6vw,3.5rem);font-weight:800;font-stretch:80%}
+h2{font-size:clamp(1.45rem,3.5vw,2rem);font-weight:800;font-stretch:85%}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0}
+.mono{font-family:var(--f-mono)}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header.hero{padding-block:44px 24px;display:grid;gap:14px}
+.eyebrow{font:600 .78rem var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.hero h1 span{background:linear-gradient(transparent 62%,var(--accent) 62%,var(--accent) 92%,transparent 92%);padding-inline:2px}
+.lead{font-size:1.12rem;max-width:64ch}
+.roadmap{display:flex;flex-wrap:wrap;gap:8px}
+.roadmap span{font:.8rem var(--f-mono);padding:4px 10px;border:1px dashed var(--line);border-radius:3px;background:var(--card)}
+
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;margin-inline:-16px;padding:10px 16px;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;padding-block:2px}
+.tabbtn{font:600 .82rem var(--f-mono);color:var(--muted);padding:7px 11px;border:1px solid var(--line);border-radius:3px;background:var(--card);white-space:nowrap;flex:none}
+.tabbtn:hover{border-color:var(--ink);color:var(--ink)}
+.tabbtn.done{border-color:var(--ok);color:var(--ok)}
+.tabbtn.done::after{content:" ✓"}
+.tabbtn[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.score{font:600 .85rem var(--f-mono);white-space:nowrap}
+.meter{height:6px;background:var(--line);border-radius:3px;overflow:hidden;width:100px}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
+.iconbtn{border:1.5px solid var(--line);background:var(--card);border-radius:3px;padding:5px 9px;font:600 .8rem var(--f-mono)}
+
+section.frame{position:relative;background:var(--card);border:1.5px solid var(--ink);margin-top:28px;padding:56px clamp(16px,4vw,36px) 28px;display:grid;gap:20px}
+.tab{position:absolute;top:-1.5px;left:-1.5px;font:600 .82rem var(--f-mono);background:var(--card);border:1.5px solid var(--ink);padding:6px 26px 6px 12px;clip-path:polygon(0 0,100% 0,100% 55%,calc(100% - 14px) 100%,0 100%);max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab b{color:var(--accent-ink);background:var(--accent-soft);padding:0 4px;margin-right:6px}
+.prose{max-width:68ch;display:grid;gap:10px}
+.key{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;max-width:68ch}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.cols>*{min-width:0}
+.act{border:1px dashed var(--line);padding:18px;display:grid;gap:14px;background:var(--paper)}
+.act-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.act-h .tag{font:600 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.1em;background:var(--ink);color:var(--card);padding:2px 8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:1.5px solid var(--ink);background:var(--card);padding:7px 14px;font-weight:700;border-radius:3px}
+.btn.primary{background:var(--ink);color:var(--card)}
+.btn.ghost{border-style:dashed}
+.btn:hover{transform:translateY(-1px)}
+.fb{font-weight:600;min-height:1.4em}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.corr{border-left:4px solid var(--ok);background:var(--ok-soft);padding:10px 14px;font-size:.95rem;display:grid;gap:4px;max-width:74ch}
+.svgbox{overflow-x:auto;background:var(--card);border:1px solid var(--line)}
+.svgbox svg{display:block;width:100%;min-width:560px;height:auto}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+
+/* champs */
+.items{display:grid;gap:8px}
+.it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:8px 10px;border:1px solid var(--line);background:var(--card)}
+.it label{font-weight:600}
+.it .ctl{display:flex;align-items:center;gap:6px}
+input.num,select.sel{font:600 .95rem var(--f-mono);padding:6px 8px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+input.num{width:110px}
+select.sel{max-width:300px}
+.unit{font:600 .88rem var(--f-mono);color:var(--muted);min-width:3ch}
+.it.good{border-color:var(--ok);background:var(--ok-soft)} .it.wrong{border-color:var(--bad);background:var(--bad-soft)}
+
+/* req */
+.tree{display:grid;gap:8px;font-size:.95rem}
+.req{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);padding:8px 10px}
+.req .id{font:600 .8rem var(--f-mono);color:var(--accent-ink);background:var(--accent-soft);padding:2px 6px}
+.req.l1{border-color:var(--ink);font-weight:700}
+.req.l2{margin-left:24px;font-weight:600}
+.req.l3{margin-left:48px}
+.req.good{background:var(--ok-soft);border-color:var(--ok)} .req.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.note{border:1.5px solid var(--ink);background:var(--paper);padding:10px 14px;font-size:.92rem;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%);max-width:420px}
+.note b{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);display:block}
+
+/* spec */
+.spec{border:1.5px solid var(--ink);background:var(--paper);font-size:.95rem;align-self:start}
+.spec .sh{border-bottom:1.5px solid var(--ink);padding:8px 12px;text-align:center;font-weight:700;font-family:var(--f-display)}
+.spec .sh small{display:block;font:400 .75rem var(--f-mono);color:var(--muted)}
+.spec dl{margin:0;padding:10px 12px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
+.spec dt{color:var(--muted)} .spec dd{margin:0;font:600 .9rem var(--f-mono)}
+
+/* chaîne */
+.chainbox{overflow-x:auto;padding-bottom:6px}
+.chain{display:flex;align-items:center;min-width:max-content}
+.blk{border:1.5px solid var(--ink);background:var(--accent-soft);padding:10px 12px;text-align:center;min-width:124px;display:grid;gap:2px}
+.blk b{font-family:var(--f-display)}
+.blk small{font:600 .74rem var(--f-mono);color:var(--accent-ink)}
+.flow{display:grid;gap:3px;justify-items:center;font:600 .8rem var(--f-mono);min-width:96px;text-align:center;padding-inline:4px}
+.flow .arr{width:100%;height:14px;position:relative}
+.flow .arr::before{content:"";position:absolute;left:2px;right:12px;top:5px;height:4px;background:var(--c,var(--ink))}
+.flow .arr::after{content:"";position:absolute;right:0;top:0;border:7px solid transparent;border-left:12px solid var(--c,var(--ink));border-right:0}
+.flow small{font:400 .74rem var(--f-body);color:var(--muted)}
+.slider{display:grid;gap:8px;padding:14px;border:1.5px solid var(--ink);background:var(--card)}
+.slider input[type=range]{width:100%;accent-color:var(--accent)}
+.out{display:flex;gap:18px;flex-wrap:wrap;font:700 1rem var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* chaînes fonctionnelles */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.bins{display:grid;gap:8px}
+.binrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.bin{border:1.5px solid var(--ink);background:var(--card);min-height:96px;padding:8px;display:grid;align-content:start;gap:6px;text-align:left}
+.bin .bh{font:700 .95rem var(--f-display)}
+.piece{border:1.5px solid var(--ink);background:var(--accent-soft);padding:4px 10px;border-radius:3px;font-weight:600;font-size:.9rem;cursor:pointer}
+.piece.sel{background:var(--accent);color:#1d1600}
+.piece.good{background:var(--ok-soft);border-color:var(--ok)} .piece.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.chain-label{font:600 .78rem var(--f-mono);text-transform:uppercase;letter-spacing:.1em}
+
+/* ucd / ibd */
+.hit:hover .shape{stroke:var(--accent);stroke-width:3}
+.pens{display:flex;gap:8px;flex-wrap:wrap}
+.pen{display:flex;gap:8px;align-items:center;border:1.5px solid var(--ink);background:var(--card);padding:6px 12px;border-radius:3px;font-weight:700}
+.pen i{width:22px;height:6px;border-radius:3px;display:block}
+.pen.sel{box-shadow:0 0 0 3px var(--accent)}
+.lnk{cursor:pointer}
+.lnk .vis{stroke:var(--ink);stroke-width:2;fill:none}
+.lnk .hitp{stroke:transparent;stroke-width:16;fill:none}
+.lnk:hover .vis{stroke-width:4}
+.lnk.c-info .vis{stroke:var(--info);stroke-width:4}
+.lnk.c-elec .vis{stroke:var(--elec);stroke-width:4}
+.lnk.c-meca .vis{stroke:var(--meca);stroke-width:4}
+.lnk.wrong .vis{stroke-dasharray:6 4}
+
+.pager{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:16px}
+.pager .btn:only-child{margin-left:auto}
+.final{border:2px solid var(--ink);background:var(--accent-soft);padding:16px;display:grid;gap:4px}
+footer{margin-top:40px;font:.8rem var(--f-mono);color:var(--muted)}
+@media (max-width:560px){.it{grid-template-columns:1fr}select.sel{max-width:none;width:100%}.req{grid-template-columns:auto 1fr}.req select{grid-column:1/-1;max-width:none}.req.l2{margin-left:12px}.req.l3{margin-left:24px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.btn:hover{transform:none}}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Exercices · Spé SI 1<sup>re</sup> · Lycée Bamana</div>
+  <h1>Atelier <span>analyse des systèmes</span></h1>
+  <p class="lead">Six exercices, six systèmes du quotidien. Tu réutilises les outils du cours : diagrammes SysML, calculs d'énergie, de puissance et de rendement, chaînes fonctionnelles.</p>
+  <div class="roadmap"><span>1 ucd · trottinette</span><span>2 req · robot tondeuse</span><span>3 Énergie · perceuse</span><span>4 Rendement · monte-charge</span><span>5 Chaînes · volet roulant</span><span>6 ibd · robot aspirateur</span></div>
+</header>
+</div>
+
+<nav class="nav" aria-label="Exercices">
+  <div class="wrap">
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="row" style="gap:8px"><div class="meter" aria-hidden="true"><i id="meter"></i></div><span class="score" id="progress">0/6</span><button class="iconbtn" id="themeBtn">Thème : auto</button></div>
+  </div>
+</nav>
+<div id="tabs-top"></div>
+
+<div class="wrap">
+
+<!-- 1 UCD -->
+<section class="frame" id="ex1" role="tabpanel" aria-labelledby="tab-ex1">
+  <div class="tab"><b>ucd</b>Trottinette électrique</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Exercice 1 · Le diagramme des cas d'utilisation</h2>
+      <p>Une trottinette électrique permet de se déplacer en ville. L'utilisateur accélère et freine à chaque trajet. La nuit, il peut allumer l'éclairage. S'il le souhaite, il suit son trajet sur une application de smartphone.</p>
+    </div>
+    <div class="key"><strong>Rappel.</strong> «include» : la fonction pointée est indispensable. «extend» : la fonction est optionnelle. Acteurs principaux à gauche, acteurs secondaires à droite.</div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité</span><h3>Complète les relations, puis réponds aux questions</h3></div>
+    <p class="muted">Clique sur chaque étiquette « ? » pour choisir «include» ou «extend».</p>
+    <div class="svgbox"><svg id="ucd1" viewBox="0 0 660 410" role="img" aria-label="Diagramme des cas d'utilisation de la trottinette">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10" fill="none" stroke="var(--muted)" stroke-width="1.5"/></marker></defs>
+      <path d="M6 6 H226 L240 18 V30 H6 Z" fill="var(--card)" stroke="var(--ink)"/><text x="14" y="23" font-size="13" font-family="JetBrains Mono, monospace">ucd Trottinette électrique</text>
+      <rect x="150" y="44" width="360" height="356" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <line x1="88" y1="214" x2="226" y2="220" stroke="var(--ink)" stroke-width="1.4"/>
+      <line x1="434" y1="220" x2="548" y2="200" stroke="var(--ink)" stroke-width="1.4"/>
+      <line x1="510" y1="345" x2="548" y2="340" stroke="var(--ink)" stroke-width="1.4"/>
+      <line x1="300" y1="196" x2="252" y2="122" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+      <line x1="360" y1="196" x2="408" y2="122" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+      <line x1="252" y1="320" x2="300" y2="246" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+      <line x1="408" y1="320" x2="360" y2="246" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+      <g><circle cx="70" cy="190" r="10" fill="none" stroke="var(--info)" stroke-width="2"/><path d="M70 200 V234 M50 212 H90 M70 234 L55 258 M70 234 L85 258" stroke="var(--info)" stroke-width="2" fill="none"/><text x="70" y="276" text-anchor="middle" font-size="13">Utilisateur</text></g>
+      <ellipse cx="230" cy="98" rx="70" ry="22" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="230" y="102" text-anchor="middle" font-size="12">Accélérer</text>
+      <ellipse cx="430" cy="98" rx="70" ry="22" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="430" y="102" text-anchor="middle" font-size="12">Freiner</text>
+      <ellipse cx="330" cy="220" rx="104" ry="26" fill="var(--card)" stroke="var(--ink)" stroke-width="1.8"/><text x="330" y="225" text-anchor="middle" font-size="13" font-weight="700">Se déplacer en ville</text>
+      <ellipse cx="230" cy="345" rx="76" ry="23" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="230" y="349" text-anchor="middle" font-size="12">Éclairer la route</text>
+      <ellipse cx="430" cy="345" rx="80" ry="23" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="430" y="341" text-anchor="middle" font-size="12">Suivre son trajet</text><text x="430" y="355" text-anchor="middle" font-size="12">sur smartphone</text>
+      <rect x="548" y="176" width="50" height="44" fill="var(--ok-soft)" stroke="var(--info)" stroke-width="1.5"/><text x="573" y="236" text-anchor="middle" font-size="12">Route</text>
+      <rect x="548" y="318" width="50" height="44" fill="var(--ok-soft)" stroke="var(--info)" stroke-width="1.5"/><text x="573" y="378" text-anchor="middle" font-size="12">Smartphone</text>
+      <g class="rel" data-ans="include" data-x="262" data-y="160"></g>
+      <g class="rel" data-ans="include" data-x="398" data-y="160"></g>
+      <g class="rel" data-ans="extend" data-x="262" data-y="284"></g>
+      <g class="rel" data-ans="extend" data-x="398" data-y="284"></g>
+    </svg></div>
+    <div class="items">
+      <div class="it"><label for="e1q1">Le smartphone est, pour la trottinette…</label><div class="ctl"><select class="sel" id="e1q1"><option value="">Choisir…</option><option>un acteur principal</option><option>un acteur secondaire</option><option>un cas d'utilisation</option></select></div></div>
+      <div class="it"><label for="e1q2">Le cadre jaune représente…</label><div class="ctl"><select class="sel" id="e1q2"><option value="">Choisir…</option><option>les limites du système étudié</option><option>l'environnement de la trottinette</option><option>les utilisateurs</option></select></div></div>
+      <div class="it"><label for="e1q3">« Éclairer la route » est relié par «extend » car…</label><div class="ctl"><select class="sel" id="e1q3"><option value="">Choisir…</option><option>on peut se déplacer sans éclairage le jour</option><option>l'éclairage est obligatoire pour rouler</option><option>c'est un acteur</option></select></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 REQ -->
+<section class="frame" id="ex2" role="tabpanel" aria-labelledby="tab-ex2">
+  <div class="tab"><b>req</b>Robot tondeuse</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Exercice 2 · Le diagramme d'exigences</h2>
+      <p>Un robot tondeuse tond seul la pelouse. Il reste dans la zone délimitée par un fil périphérique enterré, contourne les obstacles et retourne se recharger sur sa base.</p>
+    </div>
+    <div class="note"><b>«refine»</b>Hauteur de coupe réglable de 20 mm à 60 mm, par pas de 5 mm.</div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité A</span><h3>Quel composant satisfait chaque exigence ?</h3></div>
+    <div class="tree" id="reqtree"></div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité B</span><h3>Lire les relations</h3></div>
+    <div class="items">
+      <div class="it"><label for="e2r1">Le symbole ⊕ signifie…</label><div class="ctl"><select class="sel" id="e2r1"></select></div></div>
+      <div class="it"><label for="e2r2">La relation «refine» signifie…</label><div class="ctl"><select class="sel" id="e2r2"></select></div></div>
+      <div class="it"><label for="e2r3">La relation «satisfy» signifie…</label><div class="ctl"><select class="sel" id="e2r3"></select></div></div>
+      <div class="it"><label for="e2r4">La note «refine» ci-dessus précise l'exigence…</label><div class="ctl"><select class="sel" id="e2r4"><option value="">Choisir…</option><option>1.1.1</option><option>1.1.2</option><option>1.2.1</option><option>1.3</option></select></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 ENERGIE -->
+<section class="frame" id="ex3" role="tabpanel" aria-labelledby="tab-ex3">
+  <div class="tab"><b>§3</b>Perceuse-visseuse sans fil</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Exercice 3 · Énergie et puissance</h2>
+      <p>On étudie la batterie et le moteur d'une perceuse-visseuse sans fil pendant un perçage en continu.</p>
+      <div class="svgbox" style="border:0"><svg viewBox="0 0 420 210" role="img" aria-label="Perceuse-visseuse sans fil" style="min-width:0">
+        <rect x="70" y="40" width="210" height="62" rx="10" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="1.6"/>
+        <rect x="280" y="56" width="34" height="30" fill="var(--card)" stroke="var(--ink)" stroke-width="1.6"/>
+        <path d="M314 64 H370 L380 71 L370 78 H314 Z" fill="var(--card)" stroke="var(--meca)" stroke-width="1.6"/>
+        <path d="M150 102 L136 160 H196 L206 102 Z" fill="var(--accent-soft)" stroke="var(--ink)" stroke-width="1.6"/>
+        <rect x="112" y="160" width="112" height="34" rx="4" fill="var(--card)" stroke="var(--elec)" stroke-width="2"/>
+        <text x="168" y="182" text-anchor="middle" font-size="12" font-weight="700" fill="var(--elec)" style="fill:var(--elec)">18 V · 2,0 A.h</text>
+        <circle cx="130" cy="71" r="18" fill="none" stroke="var(--meca)" stroke-width="2"/><text x="130" y="75" text-anchor="middle" font-size="11">M</text>
+        <text x="345" y="100" text-anchor="middle" font-size="11" fill="var(--muted)">mandrin</text>
+        <text x="40" y="181" text-anchor="end" font-size="11" fill="var(--muted)">batterie</text><line x1="44" y1="177" x2="110" y2="177" stroke="var(--line)"/>
+      </svg></div>
+    </div>
+    <div class="spec"><div class="sh"><small>«block» caractéristiques</small>Perceuse-visseuse</div><dl>
+      <dt>Tension de la batterie</dt><dd>U = 18 V</dd>
+      <dt>Capacité de la batterie</dt><dd>2,0 A.h</dd>
+      <dt>Intensité absorbée en perçage</dt><dd>I = 10 A</dd>
+      <dt>Couple du moteur</dt><dd>C = 1,2 N.m</dd>
+      <dt>Vitesse angulaire du moteur</dt><dd>ω = 120 rad.s⁻¹</dd>
+    </dl></div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité</span><h3>Calcule, puis vérifie</h3></div>
+    <p class="muted">Rappels : E = U × capacité (W.h) · 1 W.h = 3 600 J · P = U × I · P = C × ω · t = E / P. La virgule et le point sont acceptés.</p>
+    <div class="items">
+      <div class="it"><label for="e3a">Forme de l'énergie stockée dans la batterie</label><div class="ctl"><select class="sel" id="e3a"><option value="">Choisir…</option><option>Énergie chimique</option><option>Énergie mécanique</option><option>Énergie thermique</option></select></div></div>
+      <div class="it"><label for="e3b">Énergie stockée dans la batterie</label><div class="ctl"><input class="num" id="e3b" inputmode="decimal" autocomplete="off"><span class="unit">W.h</span></div></div>
+      <div class="it"><label for="e3c">Cette énergie en kilojoules</label><div class="ctl"><input class="num" id="e3c" inputmode="decimal" autocomplete="off"><span class="unit">kJ</span></div></div>
+      <div class="it"><label for="e3d">Puissance électrique absorbée par le moteur</label><div class="ctl"><input class="num" id="e3d" inputmode="decimal" autocomplete="off"><span class="unit">W</span></div></div>
+      <div class="it"><label for="e3e">Autonomie en perçage continu</label><div class="ctl"><input class="num" id="e3e" inputmode="decimal" autocomplete="off"><span class="unit">min</span></div></div>
+      <div class="it"><label for="e3f">Puissance mécanique fournie par le moteur</label><div class="ctl"><input class="num" id="e3f" inputmode="decimal" autocomplete="off"><span class="unit">W</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 RENDEMENT -->
+<section class="frame" id="ex4" role="tabpanel" aria-labelledby="tab-ex4">
+  <div class="tab"><b>§3</b>Monte-charge de chantier</div>
+  <div class="prose">
+    <h2>Exercice 4 · Le rendement</h2>
+    <p>Un monte-charge soulève une palette de <strong>200 kg</strong> à la vitesse constante de <strong>0,5 m.s⁻¹</strong>. On prend g = 9,81 m.s⁻². La force à vaincre est le poids de la charge : F = m × g.</p>
+  </div>
+  <div class="chainbox"><div class="chain">
+    <div class="flow" style="--c:var(--elec)"><span>P<sub>e</sub> = ?</span><div class="arr"></div><small>réseau</small></div>
+    <div class="blk"><small>Distribuer · η = 0,95</small><b>Variateur</b></div>
+    <div class="flow" style="--c:var(--elec)"><div class="arr"></div></div>
+    <div class="blk"><small>Convertir · η = 0,85</small><b>Moteur</b></div>
+    <div class="flow" style="--c:var(--meca)"><div class="arr"></div></div>
+    <div class="blk"><small>Adapter · η = 0,60</small><b>Réducteur roue et vis sans fin</b></div>
+    <div class="flow" style="--c:var(--meca)"><div class="arr"></div></div>
+    <div class="blk"><small>Transformer · η = 0,90</small><b>Treuil et câble</b></div>
+    <div class="flow" style="--c:var(--meca)"><span>P<sub>u</sub> = ?</span><div class="arr"></div><small>charge</small></div>
+  </div></div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité</span><h3>Calcule les puissances et le rendement</h3></div>
+    <div class="items">
+      <div class="it"><label for="e4a">Puissance utile P<sub>u</sub> pour lever la charge</label><div class="ctl"><input class="num" id="e4a" inputmode="decimal" autocomplete="off"><span class="unit">W</span></div></div>
+      <div class="it"><label for="e4b">Rendement global η<sub>g</sub> (forme décimale)</label><div class="ctl"><input class="num" id="e4b" inputmode="decimal" autocomplete="off"><span class="unit">η</span></div></div>
+      <div class="it"><label for="e4c">Puissance absorbée sur le réseau P<sub>e</sub></label><div class="ctl"><input class="num" id="e4c" inputmode="decimal" autocomplete="off"><span class="unit">W</span></div></div>
+      <div class="it"><label for="e4d">Puissance perdue dans la chaîne</label><div class="ctl"><input class="num" id="e4d" inputmode="decimal" autocomplete="off"><span class="unit">W</span></div></div>
+      <div class="it"><label for="e4e">Maillon qui provoque le plus de pertes</label><div class="ctl"><select class="sel" id="e4e"><option value="">Choisir…</option><option>Variateur</option><option>Moteur</option><option>Réducteur roue et vis sans fin</option><option>Treuil et câble</option></select></div></div>
+    </div>
+  </div>
+  <div class="slider">
+    <h3>Pour aller plus loin : change le réducteur</h3>
+    <label for="e4s">Rendement du réducteur : <b class="mono" id="e4sv">0,60</b></label>
+    <input type="range" id="e4s" min="0.40" max="0.98" step="0.01" value="0.60">
+    <div class="out"><span>η<sub>g</sub> = <span id="e4o1"></span></span><span>P<sub>e</sub> = <span id="e4o2"></span></span><span style="color:var(--bad)">pertes = <span id="e4o3"></span></span></div>
+    <p class="muted" style="font-size:.9rem">Un réducteur à engrenages droits atteint environ 0,95. Observe la puissance économisée.</p>
+  </div>
+</section>
+
+<!-- 5 CHAINES -->
+<section class="frame" id="ex5" role="tabpanel" aria-labelledby="tab-ex5">
+  <div class="tab"><b>§3</b>Volet roulant motorisé</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Exercice 5 · Chaîne d'information, chaîne de puissance</h2>
+      <p>Le volet roulant se ferme quand l'utilisateur appuie sur l'interrupteur, ou automatiquement quand le capteur de luminosité détecte la nuit. Un voyant indique que l'ordre a été reçu.</p>
+    </div>
+    <div class="key"><strong>Rappel.</strong> La chaîne d'information <em>acquiert</em>, <em>traite</em> et <em>communique</em>. La chaîne de puissance <em>alimente</em>, <em>distribue</em>, <em>convertit</em> et <em>transmet</em>.</div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité</span><h3>Range les composants du volet roulant</h3></div>
+    <p class="muted">Clique sur un composant, puis sur la fonction qu'il réalise. Clique de nouveau sur un composant rangé pour le déplacer.</p>
+    <div class="chips" id="pieces"></div>
+    <div class="bins">
+      <div class="chain-label" style="color:var(--info)">Chaîne d'information</div>
+      <div class="binrow" id="binsInfo"></div>
+      <div class="chain-label" style="color:var(--elec)">Chaîne de puissance</div>
+      <div class="binrow" id="binsPuis"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 IBD -->
+<section class="frame" id="ex6" role="tabpanel" aria-labelledby="tab-ex6">
+  <div class="tab"><b>ibd</b>Robot aspirateur</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Exercice 6 · Le diagramme de blocs internes</h2>
+      <p>Le robot aspirateur se déplace seul. Ses capteurs détectent les obstacles et le vide, la carte de commande décide de la trajectoire, et une application de smartphone permet de lancer le nettoyage.</p>
+    </div>
+    <div class="key">Code couleur : <b style="color:var(--info)">vert</b> pour l'information, <b style="color:var(--elec)">rouge</b> pour l'énergie électrique, <b style="color:var(--meca)">bleu</b> pour l'énergie mécanique.</div>
+  </div>
+  <div class="act">
+    <div class="act-h"><span class="tag">Activité</span><h3>Repasse chaque flux de la bonne couleur</h3></div>
+    <div class="pens" id="pens">
+      <button class="pen sel" data-c="info"><i style="background:var(--info)"></i>Information</button>
+      <button class="pen" data-c="elec"><i style="background:var(--elec)"></i>Énergie électrique</button>
+      <button class="pen" data-c="meca"><i style="background:var(--meca)"></i>Énergie mécanique</button>
+    </div>
+    <div class="svgbox"><svg id="ibd6" viewBox="0 0 700 345" role="img" aria-label="Diagramme de blocs internes du robot aspirateur">
+      <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="var(--ink)"/></marker></defs>
+      <rect x="6" y="6" width="688" height="333" fill="none" stroke="var(--ink)" stroke-width="1.4"/>
+      <path d="M6 6 H210 L224 18 V30 H6 Z" fill="var(--card)" stroke="var(--ink)"/><text x="14" y="23" font-size="12" font-family="JetBrains Mono, monospace">ibd Robot aspirateur</text>
+      <g id="links6"></g>
+      <g font-size="12.5" font-weight="700">
+        <rect x="30" y="52" width="110" height="50" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="85" y="74" text-anchor="middle">Capteurs</text><text x="85" y="90" text-anchor="middle" font-weight="400" font-size="11">obstacle, vide</text>
+        <rect x="250" y="45" width="130" height="62" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="315" y="72" text-anchor="middle">Carte de</text><text x="315" y="88" text-anchor="middle">commande</text>
+        <rect x="520" y="52" width="140" height="50" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="590" y="74" text-anchor="middle">Application</text><text x="590" y="90" text-anchor="middle">smartphone</text>
+        <rect x="30" y="240" width="100" height="50" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="80" y="270" text-anchor="middle">Batterie</text>
+        <rect x="200" y="240" width="120" height="50" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="260" y="262" text-anchor="middle">Carte de</text><text x="260" y="278" text-anchor="middle">puissance</text>
+        <rect x="380" y="240" width="110" height="50" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="435" y="262" text-anchor="middle">Moteurs</text><text x="435" y="278" text-anchor="middle">de roues</text>
+        <rect x="550" y="240" width="90" height="50" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/><text x="595" y="270" text-anchor="middle">Roues</text>
+      </g>
+      <text x="612" y="334" font-size="11" fill="var(--muted)">sol</text>
+    </svg></div>
+  </div>
+</section>
+
+<footer>Atelier · Analyse des systèmes · Spé SI 1<sup>re</sup> · Lycée Bamana</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const NS="http://www.w3.org/2000/svg";
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const fr=(x,d=2)=>Number(x).toLocaleString("fr-FR",{maximumFractionDigits:d});
+const num=v=>{v=String(v??"").trim().replace(/\s/g,"").replace(",",".");return v===""?NaN:Number(v)};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------- thème ---------- */
+const root=document.documentElement;let theme=store.get("asx-theme");
+function applyTheme(){if(theme)root.setAttribute("data-theme",theme);else root.removeAttribute("data-theme");$("#themeBtn").textContent="Thème : "+(theme==="dark"?"sombre":theme==="light"?"clair":"auto")}
+$("#themeBtn").addEventListener("click",()=>{theme=!theme?"dark":theme==="dark"?"light":null;store.set("asx-theme",theme);applyTheme()});applyTheme();
+
+/* ---------- onglets et progression ---------- */
+const EX=[["ex1","1 · ucd"],["ex2","2 · req"],["ex3","3 · Énergie"],["ex4","4 · Rendement"],["ex5","5 · Chaînes"],["ex6","6 · ibd"]];
+let done=new Set(store.get("asx-done")||[]);
+const tabs=$("#tabs");
+EX.forEach(([id,l])=>{const b=document.createElement("button");b.className="tabbtn";b.id="tab-"+id;b.setAttribute("role","tab");b.setAttribute("aria-controls",id);b.dataset.t=id;b.textContent=l;tabs.appendChild(b)});
+const tabBtns=$$(".tabbtn");
+function render(){tabBtns.forEach(b=>b.classList.toggle("done",done.has(b.dataset.t)));$("#progress").textContent=done.size+"/6";$("#meter").style.width=(done.size/6*100)+"%"}
+function mark(id){done.add(id);store.set("asx-done",[...done]);render()}
+function show(id,focus){
+  $$("section.frame").forEach(s=>s.hidden=s.id!==id);
+  tabBtns.forEach(b=>{const on=b.dataset.t===id;b.setAttribute("aria-selected",on?"true":"false");b.tabIndex=on?0:-1;if(on){tabs.scrollLeft=Math.max(0,b.offsetLeft-tabs.offsetLeft-40);if(focus)b.focus()}});
+  const top=$("#tabs-top").getBoundingClientRect().top+window.scrollY;if(window.scrollY>top)window.scrollTo({top});
+  store.set("asx-tab",id);
+}
+tabBtns.forEach((b,i)=>{b.addEventListener("click",()=>show(b.dataset.t));
+  b.addEventListener("keydown",e=>{let j=null;if(e.key==="ArrowRight")j=(i+1)%6;else if(e.key==="ArrowLeft")j=(i+5)%6;if(j!==null){e.preventDefault();show(EX[j][0],true)}})});
+
+/* ---------- barre d'actions commune ---------- */
+function actions(sec,{check,corr,reset}){
+  const act=document.createElement("div");act.className="row";
+  act.innerHTML='<button class="btn primary">Vérifier</button><button class="btn ghost" hidden>Voir la correction</button><button class="btn">Recommencer</button><span class="fb" aria-live="polite"></span>';
+  const [bc,bk,br,fb]=act.children;const box=document.createElement("div");box.className="corr";box.hidden=true;box.innerHTML="<strong>Correction</strong>"+corr.map(c=>"<p>"+c+"</p>").join("");
+  bc.addEventListener("click",()=>{const r=check();fb.className="fb "+(r.ok?"ok":"bad");fb.textContent=r.msg;if(r.ok){mark(sec.id);box.hidden=false;bk.hidden=true}else if(!r.empty)bk.hidden=false});
+  bk.addEventListener("click",()=>{box.hidden=false;bk.hidden=true});
+  br.addEventListener("click",()=>{reset();fb.textContent="";box.hidden=true;bk.hidden=true});
+  sec.append(act,box);
+}
+function checkItems(spec){
+  let ok=0,empty=0;
+  spec.forEach(([id,ans,tol])=>{const el=document.getElementById(id),row=el.closest(".it");let good;
+    if(el.value===""){empty++;row.classList.remove("good","wrong");return}
+    if(tol!=null){const n=num(el.value);good=!isNaN(n)&&Math.abs(n-ans)<=tol}else good=el.value===ans;
+    if(good)ok++;row.classList.toggle("good",good);row.classList.toggle("wrong",!good)});
+  return {ok,empty,n:spec.length};
+}
+function resetItems(sec){sec.querySelectorAll(".it input,.it select").forEach(e=>e.value="");sec.querySelectorAll(".it").forEach(r=>r.classList.remove("good","wrong"))}
+function verdict(r,extra){if(r.empty)return{ok:false,empty:true,msg:r.empty+" réponse(s) vide(s)."};
+  return r.ok===r.n?{ok:true,msg:"Tout est juste, bravo !"}:{ok:false,msg:r.ok+" / "+r.n+" justes. "+(extra||"Corrige les réponses en rouge.")}}
+
+/* ---------- 1 · ucd ---------- */
+(function(){
+  const sec=$("#ex1"),labels=["?","include","extend"];
+  $$("#ucd1 .rel").forEach(g=>{const x=+g.dataset.x,y=+g.dataset.y;g.dataset.v="0";g.setAttribute("tabindex","0");g.setAttribute("role","button");g.style.cursor="pointer";
+    const r=document.createElementNS(NS,"rect");r.setAttribute("x",x-42);r.setAttribute("y",y-11);r.setAttribute("width",84);r.setAttribute("height",20);r.setAttribute("rx",3);r.setAttribute("fill","var(--card)");r.setAttribute("stroke","var(--accent)");r.setAttribute("stroke-width","1.5");
+    const t=document.createElementNS(NS,"text");t.setAttribute("x",x);t.setAttribute("y",y+4);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","11");t.setAttribute("font-family","JetBrains Mono, monospace");t.textContent="« ? »";g.append(r,t);
+    const cyc=()=>{let v=+g.dataset.v%2+1;g.dataset.v=v;t.textContent="«"+labels[v]+"»";r.setAttribute("stroke","var(--accent)")};
+    g.addEventListener("click",cyc);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();cyc()}})});
+  const Q=[["e1q1","un acteur secondaire"],["e1q2","les limites du système étudié"],["e1q3","on peut se déplacer sans éclairage le jour"]];
+  actions(sec,{
+    check(){let ok=0,empty=0;$$("#ucd1 .rel").forEach(g=>{const v=labels[+g.dataset.v],r=g.querySelector("rect");if(v==="?"){empty++;return}const good=v===g.dataset.ans;if(good)ok++;r.setAttribute("stroke",good?"var(--ok)":"var(--bad)")});
+      const q=checkItems(Q);return verdict({ok:ok+q.ok,empty:empty+q.empty,n:4+q.n},"Demande-toi pour chaque fonction : peut-on se déplacer sans elle ?")},
+    corr:["Accélérer et Freiner sont «include» : on ne peut pas se déplacer sans eux. Les flèches partent du cas principal vers ces fonctions.","Éclairer la route et Suivre son trajet sont «extend» : ce sont des options. Les flèches partent de l'option vers le cas principal.","Le smartphone est un acteur secondaire, placé à droite. Le cadre délimite le système étudié."],
+    reset(){$$("#ucd1 .rel").forEach(g=>{g.dataset.v="0";g.querySelector("text").textContent="« ? »";g.querySelector("rect").setAttribute("stroke","var(--accent)")});resetItems(sec)}
+  });
+})();
+
+/* ---------- 2 · req ---------- */
+(function(){
+  const sec=$("#ex2");
+  const comps=["Moteur de lame","Molette de réglage","Motoréducteurs de roues","Fil périphérique et capteur","Capteur de choc","Batterie Li-ion"];
+  const reqs=[["1","Tondre la pelouse en autonomie",1],["1.1","Couper l'herbe",2],["1.1.1","Faire tourner la lame",3,"Moteur de lame"],["1.1.2","Régler la hauteur de coupe",3,"Molette de réglage"],
+    ["1.2","Se déplacer sur la pelouse",2],["1.2.1","Entraîner les roues",3,"Motoréducteurs de roues"],["1.2.2","Rester dans la zone de tonte",3,"Fil périphérique et capteur"],
+    ["1.3","Éviter les obstacles",2,"Capteur de choc"],["1.4","Stocker l'énergie électrique",2,"Batterie Li-ion"]];
+  const tree=$("#reqtree");
+  reqs.forEach(([id,txt,l,ans],i)=>{const d=document.createElement("div");d.className="req l"+l;d.innerHTML='<span class="id"></span><span></span>';d.children[0].textContent=id;d.children[1].textContent=txt;
+    if(ans){const s=document.createElement("select");s.className="sel";s.id="e2s"+i;s.dataset.ans=ans;s.setAttribute("aria-label","Composant pour l'exigence "+id);s.innerHTML='<option value="">«satisfy» …</option>'+shuffle(comps).map(c=>"<option>"+c+"</option>").join("");d.appendChild(s)}else d.appendChild(document.createElement("span"));
+    tree.appendChild(d)});
+  const DEF=["Une exigence est décomposée en exigences plus détaillées","Ajoute des précisions, souvent chiffrées, sur une exigence","Indique le composant qui répond à l'exigence"];
+  ["e2r1","e2r2","e2r3"].forEach(id=>{$("#"+id).innerHTML='<option value="">Choisir…</option>'+shuffle(DEF).map(d=>"<option>"+d+"</option>").join("")});
+  const Q=[["e2r1",DEF[0]],["e2r2",DEF[1]],["e2r3",DEF[2]],["e2r4","1.1.2"]];
+  actions(sec,{
+    check(){let ok=0,empty=0,n=0;$$("#reqtree select").forEach(s=>{n++;const row=s.parentElement;row.classList.remove("good","wrong");if(!s.value){empty++;return}const g=s.value===s.dataset.ans;if(g)ok++;row.classList.add(g?"good":"wrong")});
+      const q=checkItems(Q);return verdict({ok:ok+q.ok,empty:empty+q.empty,n:n+q.n},"Relis le verbe de chaque exigence : faire tourner, régler, entraîner, rester, éviter, stocker.")},
+    corr:["1.1.1 Moteur de lame · 1.1.2 Molette de réglage · 1.2.1 Motoréducteurs de roues · 1.2.2 Fil périphérique et capteur · 1.3 Capteur de choc · 1.4 Batterie Li-ion.","⊕ : décomposition d'une exigence. «refine» : précision chiffrée. «satisfy» : composant qui répond à l'exigence.","La note « hauteur de 20 mm à 60 mm » précise l'exigence 1.1.2 « Régler la hauteur de coupe »."],
+    reset(){$$("#reqtree select").forEach(s=>{s.value="";s.parentElement.classList.remove("good","wrong")});resetItems(sec)}
+  });
+})();
+
+/* ---------- 3 · énergie ---------- */
+(function(){
+  const sec=$("#ex3");
+  const Q=[["e3a","Énergie chimique"],["e3b",36,0.5],["e3c",129.6,0.7],["e3d",180,1],["e3e",12,0.3],["e3f",144,1]];
+  actions(sec,{
+    check(){const r=checkItems(Q);let extra;const v=num($("#e3c").value);if(Math.abs(v-129600)<500)extra="Attention à l'unité : la réponse est demandée en kJ, pas en J.";return verdict(r,extra)},
+    corr:["Une batterie stocke de l'énergie chimique.","E = 18 V × 2,0 A.h = 36 W.h, soit 36 × 3 600 = 129 600 J ≈ 129,6 kJ.","P<sub>e</sub> = U × I = 18 × 10 = 180 W.","t = E / P = 36 / 180 = 0,2 h = 12 min.","P<sub>m</sub> = C × ω = 1,2 × 120 = 144 W."],
+    reset(){resetItems(sec)}
+  });
+})();
+
+/* ---------- 4 · rendement ---------- */
+(function(){
+  const sec=$("#ex4"),Pu=200*9.81*0.5,eg=0.95*0.85*0.60*0.90;
+  const Q=[["e4a",Pu,6],["e4b",eg,0.006],["e4c",Pu/eg,30],["e4d",Pu/eg-Pu,30],["e4e","Réducteur roue et vis sans fin"]];
+  actions(sec,{
+    check(){const r=checkItems(Q);let extra;const v=num($("#e4b").value);if(!isNaN(v)&&Math.abs(v/100-eg)<0.006)extra="Écris le rendement sous forme décimale (0,44 et non 44).";return verdict(r,extra)},
+    corr:["F = m × g = 200 × 9,81 = 1 962 N, donc P<sub>u</sub> = F × v = 1 962 × 0,5 ≈ 981 W.","η<sub>g</sub> = 0,95 × 0,85 × 0,60 × 0,90 ≈ 0,44.","P<sub>e</sub> = P<sub>u</sub> / η<sub>g</sub> = 981 / 0,436 ≈ 2 250 W ; pertes ≈ 2 250 − 981 ≈ 1 270 W, surtout en chaleur.","Le réducteur roue et vis sans fin a le plus petit rendement (0,60) : c'est lui qui provoque le plus de pertes."],
+    reset(){resetItems(sec)}
+  });
+  const s=$("#e4s");const upd=()=>{const e=+s.value,g=0.95*0.85*e*0.90,pe=Pu/g;$("#e4sv").textContent=fr(e);$("#e4o1").textContent=fr(g,3);$("#e4o2").textContent=fr(Math.round(pe))+" W";$("#e4o3").textContent=fr(Math.round(pe-Pu))+" W"};
+  s.addEventListener("input",upd);upd();
+})();
+
+/* ---------- 5 · chaînes ---------- */
+(function(){
+  const sec=$("#ex5");
+  const bins={info:["Acquérir","Traiter","Communiquer"],puis:["Alimenter","Distribuer","Convertir","Transmettre"]};
+  const pieces=[["Interrupteur mural","Acquérir"],["Capteur de luminosité","Acquérir"],["Microcontrôleur","Traiter"],["Voyant LED","Communiquer"],["Réseau 230 V","Alimenter"],["Relais","Distribuer"],["Moteur tubulaire","Convertir"],["Réducteur épicycloïdal","Transmettre"]];
+  let sel=null;
+  function build(){
+    $("#pieces").innerHTML="";$("#binsInfo").innerHTML="";$("#binsPuis").innerHTML="";sel=null;
+    [["info","#binsInfo"],["puis","#binsPuis"]].forEach(([k,h])=>bins[k].forEach(n=>{const b=document.createElement("button");b.className="bin";b.dataset.f=n;b.type="button";b.innerHTML='<span class="bh"></span>';b.firstChild.textContent=n;
+      b.addEventListener("click",e=>{if(e.target.closest(".piece")||!sel)return;b.appendChild(sel);sel.classList.remove("sel");sel=null});$(h).appendChild(b)}));
+    shuffle(pieces).forEach(([n,f])=>{const p=document.createElement("span");p.className="piece";p.tabIndex=0;p.setAttribute("role","button");p.textContent=n;p.dataset.ans=f;
+      const pick=e=>{e.stopPropagation();$$("#ex5 .piece").forEach(x=>x.classList.remove("sel"));p.classList.remove("good","wrong");p.classList.add("sel");sel=p};
+      p.addEventListener("click",pick);p.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(e)}});$("#pieces").appendChild(p)});
+  }
+  build();
+  actions(sec,{
+    check(){const left=$$("#pieces .piece").length;if(left)return{ok:false,empty:true,msg:"Il reste "+left+" composant(s) à ranger."};
+      let ok=0;$$("#ex5 .bin .piece").forEach(p=>{const g=p.closest(".bin").dataset.f===p.dataset.ans;p.classList.toggle("good",g);p.classList.toggle("wrong",!g);if(g)ok++});
+      return verdict({ok,empty:0,n:pieces.length},"Clique sur un composant en rouge pour le déplacer.")},
+    corr:["Acquérir : interrupteur mural et capteur de luminosité · Traiter : microcontrôleur · Communiquer : voyant LED.","Alimenter : réseau 230 V · Distribuer : relais (il envoie ou coupe l'énergie au moteur sur ordre du microcontrôleur) · Convertir : moteur tubulaire · Transmettre : réducteur épicycloïdal."],
+    reset:build
+  });
+})();
+
+/* ---------- 6 · ibd ---------- */
+(function(){
+  const sec=$("#ex6");
+  const links=[["M140 77 H248","info"],["M380 70 H518","info"],["M518 84 H382","info"],["M300 107 V238","info"],["M130 265 H198","elec"],["M70 238 V150 H262 V109","elec"],["M320 265 H378","elec"],["M490 265 H548","meca"],["M595 290 V328","meca"]];
+  let pen="info";
+  $$("#pens .pen").forEach(b=>b.addEventListener("click",()=>{$$("#pens .pen").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");pen=b.dataset.c}));
+  const lg=$("#links6");
+  links.forEach(([d,a])=>{const g=document.createElementNS(NS,"g");g.setAttribute("class","lnk");g.dataset.ans=a;g.setAttribute("tabindex","0");g.setAttribute("role","button");g.setAttribute("aria-label","Flux à colorier");
+    const h=document.createElementNS(NS,"path");h.setAttribute("d",d);h.setAttribute("class","hitp");
+    const v=document.createElementNS(NS,"path");v.setAttribute("d",d);v.setAttribute("class","vis");v.setAttribute("marker-end","url(#ah2)");g.append(h,v);
+    const paint=()=>{g.setAttribute("class","lnk c-"+pen);g.dataset.c=pen};
+    g.addEventListener("click",paint);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();paint()}});lg.appendChild(g)});
+  actions(sec,{
+    check(){const all=$$("#links6 .lnk"),empty=all.filter(g=>!g.dataset.c).length;if(empty)return{ok:false,empty:true,msg:"Il reste "+empty+" flux à colorier."};
+      let ok=0;all.forEach(g=>{const good=g.dataset.c===g.dataset.ans;if(good)ok++;g.classList.toggle("wrong",!good)});
+      return verdict({ok,empty:0,n:all.length},"Les flux en pointillés sont faux. Indice : la carte de commande est elle aussi alimentée par la batterie.")},
+    corr:["Information (vert) : capteurs → carte de commande, échanges carte de commande ↔ application, ordres carte de commande → carte de puissance.","Énergie électrique (rouge) : batterie → carte de puissance, batterie → carte de commande, carte de puissance → moteurs.","Énergie mécanique (bleu) : moteurs → roues, roues → sol. Le moteur est la frontière entre électrique et mécanique."],
+    reset(){$$("#links6 .lnk").forEach(g=>{g.setAttribute("class","lnk");delete g.dataset.c})}
+  });
+})();
+
+/* ---------- navigation bas de page ---------- */
+EX.forEach(([id],i)=>{const pg=document.createElement("div");pg.className="pager";
+  if(i>0){const b=document.createElement("button");b.className="btn";b.textContent="← "+EX[i-1][1];b.addEventListener("click",()=>show(EX[i-1][0]));pg.appendChild(b)}
+  if(i<5){const b=document.createElement("button");b.className="btn primary";b.textContent="Suite : "+EX[i+1][1]+" →";b.addEventListener("click",()=>show(EX[i+1][0]));pg.appendChild(b)}
+  else{const f=document.createElement("div");f.className="final";f.id="finalBox";pg.appendChild(f)}
+  document.getElementById(id).appendChild(pg)});
+const fin=()=>{const f=$("#finalBox");f.innerHTML="<strong>Bilan : "+done.size+" exercice(s) réussi(s) sur 6.</strong><span>"+(done.size===6?"Bravo, tu es prêt pour l'évaluation sommative !":"Reviens sur les onglets sans ✓ : la correction t'aidera à comprendre.")+"</span>"};
+const _mark=mark;mark=function(id){_mark(id);fin()};
+
+render();fin();
+const h=(location.hash||"").slice(1),t=store.get("asx-tab");
+show(EX.some(e=>e[0]===h)?h:EX.some(e=>e[0]===t)?t:"ex1");
+})();
+</script>

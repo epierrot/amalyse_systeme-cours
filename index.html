@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analyse des systèmes · Spé SI 1re</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#F3F5F4; --grid:#DCE3E0; --card:#FFFFFF; --ink:#18212B; --muted:#56636F; --line:#B9C4C1;
+  --accent:#E8A600; --accent-ink:#5A4000; --accent-soft:#FFF1C7;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#11171D; --grid:#1C252D; --card:#18212A; --ink:#E6ECEF; --muted:#9AA8B2; --line:#34424D;
+  --accent:#F2B92A; --accent-ink:#FFE3A0; --accent-soft:#3A2F10; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--paper);color:var(--ink);font:17px/1.55 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;padding:48px 16px 64px}
+.wrap{max-width:880px;margin:0 auto;display:grid;gap:28px}
+.eyebrow{font:600 .78rem var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font:800 clamp(2.2rem,7vw,3.8rem)/1.05 var(--f-display);font-stretch:80%;margin:6px 0 0;text-wrap:balance}
+h1 span{background:linear-gradient(transparent 62%,var(--accent) 62%,var(--accent) 92%,transparent 92%);padding-inline:2px}
+.lead{font-size:1.12rem;max-width:60ch;margin:12px 0 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+a.card{position:relative;display:grid;gap:12px;align-content:start;text-decoration:none;color:inherit;background:var(--card);border:1.5px solid var(--ink);padding:56px 24px 24px;transition:transform .15s,box-shadow .15s}
+a.card:hover{transform:translateY(-3px);box-shadow:6px 6px 0 var(--accent)}
+a.card:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.tab{position:absolute;top:-1.5px;left:-1.5px;font:600 .82rem var(--f-mono);background:var(--card);border:1.5px solid var(--ink);padding:6px 26px 6px 12px;clip-path:polygon(0 0,100% 0,100% 55%,calc(100% - 14px) 100%,0 100%)}
+.tab b{color:var(--accent-ink);background:var(--accent-soft);padding:0 4px;margin-right:6px}
+.num{font:800 3rem/1 var(--f-display);color:var(--accent)}
+h2{font:800 1.6rem/1.1 var(--f-display);font-stretch:85%;margin:0}
+.card p{margin:0;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font:.75rem var(--f-mono);padding:3px 8px;border:1px dashed var(--line);border-radius:3px}
+.go{font:700 1rem var(--f-display);margin-top:4px}
+.go::after{content:" →"}
+footer{font:.8rem var(--f-mono);color:var(--muted)}
+@media (prefers-reduced-motion:reduce){a.card{transition:none}a.card:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Spé SI 1<sup>re</sup> · Lycée Bamana</div>
+    <h1>Analyse des <span>systèmes</span></h1>
+    <p class="lead">Commence par le cours, puis entraîne-toi avec les exercices.</p>
+  </header>
+
+  <div class="cards">
+    <a class="card" href="Analyse%20des%20syst%C3%A8mes.html">
+      <span class="tab"><b>1</b>Cours</span>
+      <span class="num">01</span>
+      <h2>Cours interactif</h2>
+      <p>Du besoin au diagramme de blocs internes, avec le tapis de course comme fil rouge.</p>
+      <div class="tags"><span>ucd</span><span>req</span><span>énergie</span><span>rendement</span><span>chaînes</span><span>ibd</span><span>quiz</span></div>
+      <span class="go">Ouvrir le cours</span>
+    </a>
+    <a class="card" href="exercices-analyse-systemes-1eresi.html">
+      <span class="tab"><b>2</b>Exercices</span>
+      <span class="num">02</span>
+      <h2>Atelier d'exercices</h2>
+      <p>Six exercices sur six systèmes : trottinette, robot tondeuse, perceuse, monte-charge, volet roulant, robot aspirateur.</p>
+      <div class="tags"><span>6 onglets</span><span>correction détaillée</span></div>
+      <span class="go">Ouvrir les exercices</span>
+    </a>
+  </div>
+
+  <footer>Les trois fichiers doivent être dans le même dossier.</footer>
+</div>
+</body>
+</html>
