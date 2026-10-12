@@ -1,4 +1,13 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Atelier analyse des systèmes</title>
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -153,7 +162,40 @@ select.sel{max-width:300px}
 .pager{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:16px}
 .pager .btn:only-child{margin-left:auto}
 .final{border:2px solid var(--ink);background:var(--accent-soft);padding:16px;display:grid;gap:4px}
+.part7{display:grid;gap:10px;padding:14px;border:1px solid var(--line);background:var(--card)}
+.part7 h3{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.part7 h3 small{font:600 .72rem var(--f-mono);color:var(--accent-ink);background:var(--accent-soft);padding:2px 7px}
+.part7.good{border-color:var(--ok)} .part7.wrong{border-color:var(--bad)}
+.synth-head{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}
+.synth-head label{display:grid;gap:4px;font-weight:600}
+.synth-head input{font:600 1rem var(--f-body);padding:8px 10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);min-width:260px;max-width:100%}
+.tablebox{overflow-x:auto}
+table.res{width:100%;border-collapse:collapse;font-size:.95rem}
+table.res th,table.res td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.res th{font-family:var(--f-display);background:var(--paper)}
+.st{font:700 .78rem var(--f-mono);padding:3px 8px;border-radius:3px;white-space:nowrap}
+.st.a{background:var(--ok-soft);color:var(--ok)} .st.b{background:var(--accent-soft);color:var(--accent-ink)} .st.c{background:var(--bad-soft);color:var(--bad)} .st.d{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.big{font:800 2.6rem var(--f-display);font-stretch:80%;line-height:1}
+.memo{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.memo>div{border:1.5px solid var(--ink);background:var(--card);padding:12px 14px;display:grid;gap:6px;align-content:start;break-inside:avoid}
+.memo h3{font-size:1rem}
+.memo p,.memo li{font-size:.92rem;margin:0}
+.memo ul{margin:0;padding-left:1.1em;display:grid;gap:3px}
+.fx{font:600 .9rem var(--f-mono);background:var(--accent-soft);padding:2px 6px;display:inline-block}
+.printonly{display:none}
 footer{margin-top:40px;font:.8rem var(--f-mono);color:var(--muted)}
+@media print{
+  :root:root:root,:root:root[data-theme]{--paper:#fff;--grid:#fff;--card:#fff;--ink:#000;--muted:#444;--line:#999;--accent:#C98F00;--accent-ink:#4A3500;--accent-soft:#FFF4D6;--ok:#16703F;--ok-soft:#E3F4EA;--bad:#A3202C;--bad-soft:#FBE6E8;color-scheme:light}
+  @page{size:A4;margin:14mm}
+  body{background:#fff!important;font-size:11pt;padding:0}
+  .nav,header.hero,section.frame,footer,.noprint,.pager{display:none!important}
+  #synth,#synth[hidden]{display:grid!important;border:0;padding:0;margin:0;gap:12px}
+  #synth .tab{display:none}
+  .printonly{display:block}
+  .synth-head input{display:none}
+  table.res th,table.res td{padding:5px 7px}
+  .memo>div,table.res tr,.bilan7{break-inside:avoid}
+}
 @media (max-width:560px){.it{grid-template-columns:1fr}select.sel{max-width:none;width:100%}.req{grid-template-columns:auto 1fr}.req select{grid-column:1/-1;max-width:none}.req.l2{margin-left:12px}.req.l3{margin-left:24px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.btn:hover{transform:none}}
 </style>
@@ -162,15 +204,15 @@ footer{margin-top:40px;font:.8rem var(--f-mono);color:var(--muted)}
 <header class="hero">
   <div class="eyebrow">Exercices · Spé SI 1<sup>re</sup> · Lycée Bamana</div>
   <h1>Atelier <span>analyse des systèmes</span></h1>
-  <p class="lead">Six exercices, six systèmes du quotidien. Tu réutilises les outils du cours : diagrammes SysML, calculs d'énergie, de puissance et de rendement, chaînes fonctionnelles.</p>
-  <div class="roadmap"><span>1 ucd · trottinette</span><span>2 req · robot tondeuse</span><span>3 Énergie · perceuse</span><span>4 Rendement · monte-charge</span><span>5 Chaînes · volet roulant</span><span>6 ibd · robot aspirateur</span></div>
+  <p class="lead">Sept exercices sur des systèmes du quotidien, et un dernier qui reprend toute la démarche. Tu réutilises les outils du cours : diagrammes SysML, calculs d'énergie, de puissance et de rendement, chaînes fonctionnelles.</p>
+  <div class="roadmap"><span>1 ucd · trottinette</span><span>2 req · robot tondeuse</span><span>3 Énergie · perceuse</span><span>4 Rendement · monte-charge</span><span>5 Chaînes · volet roulant</span><span>6 ibd · robot aspirateur</span><span>7 Synthèse · drone</span><span>Synthèse à imprimer</span></div>
 </header>
 </div>
 
 <nav class="nav" aria-label="Exercices">
   <div class="wrap">
     <div class="tabs" id="tabs" role="tablist"></div>
-    <div class="row" style="gap:8px"><div class="meter" aria-hidden="true"><i id="meter"></i></div><span class="score" id="progress">0/6</span><button class="iconbtn" id="themeBtn">Thème : auto</button></div>
+    <div class="row" style="gap:8px"><div class="meter" aria-hidden="true"><i id="meter"></i></div><span class="score" id="progress">0/7</span><button class="iconbtn" id="themeBtn">Thème : auto</button></div>
   </div>
 </nav>
 <div id="tabs-top"></div>
@@ -384,6 +426,115 @@ footer{margin-top:40px;font:.8rem var(--f-mono);color:var(--muted)}
   </div>
 </section>
 
+<!-- 7 DRONE -->
+<section class="frame" id="ex7" role="tabpanel" aria-labelledby="tab-ex7">
+  <div class="tab"><b>synthèse</b>Drone de prise de vue</div>
+  <div class="cols">
+    <div class="prose">
+      <h2>Exercice 7 · Le drone, toute la démarche</h2>
+      <p>Un drone quadricoptère réalise des prises de vue aériennes. Le télépilote le commande avec une radiocommande. En option, le drone peut suivre automatiquement une personne grâce à son GPS. Tu vas reprendre les six étapes de l'analyse sur ce seul système.</p>
+      <div class="spec"><div class="sh"><small>«block» caractéristiques</small>Drone quadricoptère</div><dl>
+        <dt>Batterie LiPo</dt><dd>14,8 V · 5,2 A.h</dd>
+        <dt>Vol stationnaire</dt><dd>chaque ensemble variateur + moteur prélève 5 A sur la batterie</dd>
+        <dt>Variateur (ESC)</dt><dd>η = 0,95</dd>
+        <dt>Chaque moteur</dt><dd>C = 0,12 N.m · ω = 500 rad.s⁻¹</dd>
+      </dl></div>
+    </div>
+    <div class="svgbox" style="align-self:start"><svg viewBox="0 0 360 300" role="img" aria-label="Drone quadricoptère vu de dessus" style="min-width:0">
+      <g stroke="var(--ink)" stroke-width="7" stroke-linecap="round"><line x1="110" y1="80" x2="250" y2="220"/><line x1="250" y1="80" x2="110" y2="220"/></g>
+      <circle cx="110" cy="80" r="44" fill="var(--accent-soft)" stroke="var(--meca)" stroke-width="1.6" stroke-dasharray="6 4"/><circle cx="110" cy="80" r="11" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><circle cx="250" cy="80" r="44" fill="var(--accent-soft)" stroke="var(--meca)" stroke-width="1.6" stroke-dasharray="6 4"/><circle cx="250" cy="80" r="11" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><circle cx="110" cy="220" r="44" fill="var(--accent-soft)" stroke="var(--meca)" stroke-width="1.6" stroke-dasharray="6 4"/><circle cx="110" cy="220" r="11" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/><circle cx="250" cy="220" r="44" fill="var(--accent-soft)" stroke="var(--meca)" stroke-width="1.6" stroke-dasharray="6 4"/><circle cx="250" cy="220" r="11" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>
+      <rect x="148" y="118" width="64" height="64" rx="10" fill="var(--card)" stroke="var(--ink)" stroke-width="2"/>
+      <rect x="160" y="130" width="40" height="18" fill="var(--ok-soft)" stroke="var(--elec)" stroke-width="1.5"/><text x="180" y="143" text-anchor="middle" font-size="9" font-weight="700">LiPo</text>
+      <circle cx="180" cy="166" r="8" fill="var(--ink)"/>
+      <g font-size="11" fill="var(--muted)"><text x="40" y="22">hélice</text><line x1="62" y1="26" x2="88" y2="50" stroke="var(--line)"/>
+      <text x="282" y="150">moteur</text><line x1="280" y1="146" x2="258" y2="214" stroke="var(--line)"/>
+      <text x="196" y="288" text-anchor="middle">nacelle + caméra</text><line x1="190" y1="276" x2="181" y2="176" stroke="var(--line)"/>
+      <text x="6" y="160">batterie</text><line x1="50" y1="156" x2="158" y2="139" stroke="var(--line)"/></g>
+    </svg></div>
+  </div>
+  <div class="items">
+    <div class="part7" data-p="A"><h3><small>A · Besoin et ucd</small>Le diagramme des cas d'utilisation</h3>
+      <div class="svgbox"><svg viewBox="0 0 640 230" role="img" aria-label="ucd du drone">
+        <defs><marker id="ah7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10" fill="none" stroke="var(--muted)" stroke-width="1.5"/></marker></defs>
+        <rect x="140" y="10" width="360" height="210" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+        <g><circle cx="65" cy="80" r="9" fill="none" stroke="var(--info)" stroke-width="2"/><path d="M65 89 V120 M47 100 H83 M65 120 L52 142 M65 120 L78 142" stroke="var(--info)" stroke-width="2" fill="none"/><text x="65" y="160" text-anchor="middle" font-size="12">Télépilote</text></g>
+        <line x1="84" y1="112" x2="212" y2="118" stroke="var(--ink)" stroke-width="1.4"/><line x1="428" y1="118" x2="540" y2="110" stroke="var(--ink)" stroke-width="1.4"/>
+        <ellipse cx="320" cy="118" rx="112" ry="25" fill="var(--card)" stroke="var(--ink)" stroke-width="1.8"/><text x="320" y="122" text-anchor="middle" font-size="12.5" font-weight="700">Réaliser une prise de vue aérienne</text>
+        <ellipse cx="240" cy="190" rx="78" ry="20" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="240" y="194" text-anchor="middle" font-size="12">Piloter le drone</text>
+        <ellipse cx="400" cy="46" rx="92" ry="22" fill="var(--card)" stroke="var(--ink)" stroke-width="1.4"/><text x="400" y="50" text-anchor="middle" font-size="12">Suivre une personne</text>
+        <line x1="290" y1="142" x2="262" y2="168" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah7)"/>
+        <line x1="388" y1="68" x2="360" y2="94" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah7)"/>
+        <g font-family="JetBrains Mono, monospace" font-size="11"><rect x="292" y="148" width="40" height="18" rx="3" fill="var(--card)" stroke="var(--accent)" stroke-width="1.5"/><text x="312" y="161" text-anchor="middle">R1</text>
+        <rect x="384" y="72" width="40" height="18" rx="3" fill="var(--card)" stroke="var(--accent)" stroke-width="1.5"/><text x="404" y="85" text-anchor="middle">R2</text></g>
+        <rect x="540" y="88" width="46" height="40" fill="var(--ok-soft)" stroke="var(--info)" stroke-width="1.5"/><text x="563" y="146" text-anchor="middle" font-size="12">Vent</text>
+      </svg></div>
+      <div class="it"><label for="e7a1">Le besoin auquel répond ce drone</label><div class="ctl"><select class="sel" id="e7a1"><option value="">Choisir…</option><option>Filmer ou photographier depuis le ciel</option><option>Transporter des passagers</option><option>Mesurer la vitesse du vent</option></select></div></div>
+      <div class="it"><label for="e7a2">Relation R1 (Piloter le drone)</label><div class="ctl"><select class="sel" id="e7a2"><option value="">Choisir…</option><option>«include»</option><option>«extend»</option></select></div></div>
+      <div class="it"><label for="e7a3">Relation R2 (Suivre une personne)</label><div class="ctl"><select class="sel" id="e7a3"><option value="">Choisir…</option><option>«include»</option><option>«extend»</option></select></div></div>
+      <div class="it"><label for="e7a4">Le vent est…</label><div class="ctl"><select class="sel" id="e7a4"><option value="">Choisir…</option><option>un acteur principal</option><option>un acteur secondaire</option><option>un cas d'utilisation</option></select></div></div>
+    </div>
+    <div class="part7" data-p="B"><h3><small>B · req</small>Le diagramme d'exigences</h3>
+      <p class="muted">Quel composant satisfait («satisfy») chaque exigence ?</p>
+      <div class="it"><label for="e7b1">Mesurer l'altitude</label><div class="ctl"><select class="sel" id="e7b1"><option value="">Choisir…</option><option>Baromètre</option><option>Nacelle 3 axes</option><option>Batterie LiPo</option><option>Contrôleur de vol</option><option>GPS</option><option>Moteurs brushless</option></select></div></div>
+      <div class="it"><label for="e7b2">Stabiliser la caméra pendant le vol</label><div class="ctl"><select class="sel" id="e7b2"><option value="">Choisir…</option><option>Baromètre</option><option>Nacelle 3 axes</option><option>Batterie LiPo</option><option>Contrôleur de vol</option><option>GPS</option><option>Moteurs brushless</option></select></div></div>
+      <div class="it"><label for="e7b3">Stocker l'énergie électrique</label><div class="ctl"><select class="sel" id="e7b3"><option value="">Choisir…</option><option>Baromètre</option><option>Nacelle 3 axes</option><option>Batterie LiPo</option><option>Contrôleur de vol</option><option>GPS</option><option>Moteurs brushless</option></select></div></div>
+      <div class="it"><label for="e7b4">La note «refine» « autonomie d'au moins 15 min en vol stationnaire » précise l'exigence…</label><div class="ctl"><select class="sel" id="e7b4"><option value="">Choisir…</option><option>Voler en autonomie</option><option>Mesurer l'altitude</option><option>Stabiliser la caméra</option></select></div></div>
+    </div>
+    <div class="part7" data-p="C"><h3><small>C · Énergie</small>Énergie et puissance</h3>
+      <div class="it"><label for="e7c1">Énergie stockée dans la batterie</label><div class="ctl"><input class="num" id="e7c1" inputmode="decimal" autocomplete="off"><span class="unit">W.h</span></div></div>
+      <div class="it"><label for="e7c2">Puissance totale prélevée sur la batterie en vol stationnaire (4 moteurs)</label><div class="ctl"><input class="num" id="e7c2" inputmode="decimal" autocomplete="off"><span class="unit">W</span></div></div>
+      <div class="it"><label for="e7c3">Autonomie en vol stationnaire</label><div class="ctl"><input class="num" id="e7c3" inputmode="decimal" autocomplete="off"><span class="unit">min</span></div></div>
+    </div>
+    <div class="part7" data-p="D"><h3><small>D · Rendement</small>Rendements</h3>
+      <div class="it"><label for="e7d1">Puissance mécanique fournie par un moteur</label><div class="ctl"><input class="num" id="e7d1" inputmode="decimal" autocomplete="off"><span class="unit">W</span></div></div>
+      <div class="it"><label for="e7d2">Rendement global d'un ensemble variateur + moteur</label><div class="ctl"><input class="num" id="e7d2" inputmode="decimal" autocomplete="off"><span class="unit">η</span></div></div>
+      <div class="it"><label for="e7d3">Rendement du moteur seul</label><div class="ctl"><input class="num" id="e7d3" inputmode="decimal" autocomplete="off"><span class="unit">η</span></div></div>
+    </div>
+    <div class="part7" data-p="E"><h3><small>E · Chaînes</small>Chaîne d'information et chaîne de puissance</h3>
+      <div class="it"><label for="e7e1">GPS</label><div class="ctl"><select class="sel" id="e7e1"><option value="">Choisir…</option><option>Acquérir</option><option>Traiter</option><option>Communiquer</option><option>Alimenter</option><option>Distribuer</option><option>Convertir</option><option>Transmettre</option></select></div></div>
+      <div class="it"><label for="e7e2">Contrôleur de vol</label><div class="ctl"><select class="sel" id="e7e2"><option value="">Choisir…</option><option>Acquérir</option><option>Traiter</option><option>Communiquer</option><option>Alimenter</option><option>Distribuer</option><option>Convertir</option><option>Transmettre</option></select></div></div>
+      <div class="it"><label for="e7e3">LED de signalisation</label><div class="ctl"><select class="sel" id="e7e3"><option value="">Choisir…</option><option>Acquérir</option><option>Traiter</option><option>Communiquer</option><option>Alimenter</option><option>Distribuer</option><option>Convertir</option><option>Transmettre</option></select></div></div>
+      <div class="it"><label for="e7e4">Batterie LiPo</label><div class="ctl"><select class="sel" id="e7e4"><option value="">Choisir…</option><option>Acquérir</option><option>Traiter</option><option>Communiquer</option><option>Alimenter</option><option>Distribuer</option><option>Convertir</option><option>Transmettre</option></select></div></div>
+      <div class="it"><label for="e7e5">Variateurs (ESC)</label><div class="ctl"><select class="sel" id="e7e5"><option value="">Choisir…</option><option>Acquérir</option><option>Traiter</option><option>Communiquer</option><option>Alimenter</option><option>Distribuer</option><option>Convertir</option><option>Transmettre</option></select></div></div>
+      <div class="it"><label for="e7e6">Moteurs brushless</label><div class="ctl"><select class="sel" id="e7e6"><option value="">Choisir…</option><option>Acquérir</option><option>Traiter</option><option>Communiquer</option><option>Alimenter</option><option>Distribuer</option><option>Convertir</option><option>Transmettre</option></select></div></div>
+      <div class="it"><label for="e7e7">Hélices</label><div class="ctl"><select class="sel" id="e7e7"><option value="">Choisir…</option><option>Acquérir</option><option>Traiter</option><option>Communiquer</option><option>Alimenter</option><option>Distribuer</option><option>Convertir</option><option>Transmettre</option></select></div></div>
+    </div>
+    <div class="part7" data-p="F"><h3><small>F · ibd</small>Nature des flux</h3>
+      <div class="it"><label for="e7f1">Radiocommande → contrôleur de vol</label><div class="ctl"><select class="sel" id="e7f1"><option value="">Choisir…</option><option>Information</option><option>Énergie électrique</option><option>Énergie mécanique</option></select></div></div>
+      <div class="it"><label for="e7f2">Batterie → variateurs</label><div class="ctl"><select class="sel" id="e7f2"><option value="">Choisir…</option><option>Information</option><option>Énergie électrique</option><option>Énergie mécanique</option></select></div></div>
+      <div class="it"><label for="e7f3">Contrôleur de vol → variateurs</label><div class="ctl"><select class="sel" id="e7f3"><option value="">Choisir…</option><option>Information</option><option>Énergie électrique</option><option>Énergie mécanique</option></select></div></div>
+      <div class="it"><label for="e7f4">Variateurs → moteurs</label><div class="ctl"><select class="sel" id="e7f4"><option value="">Choisir…</option><option>Information</option><option>Énergie électrique</option><option>Énergie mécanique</option></select></div></div>
+      <div class="it"><label for="e7f5">Moteurs → hélices</label><div class="ctl"><select class="sel" id="e7f5"><option value="">Choisir…</option><option>Information</option><option>Énergie électrique</option><option>Énergie mécanique</option></select></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SYNTHESE -->
+<section class="frame" id="synth" role="tabpanel" aria-labelledby="tab-synth">
+  <div class="tab"><b>bilan</b>Synthèse de l'atelier</div>
+  <div class="synth-head">
+    <div style="display:grid;gap:6px"><span class="eyebrow">Spé SI 1<sup>re</sup> · Lycée Bamana</span><h2>Synthèse · Atelier analyse des systèmes</h2>
+      <p class="printonly" id="synthNameP"></p></div>
+    <label for="synthName" class="noprint">Nom et prénom<input id="synthName" autocomplete="off"></label>
+  </div>
+  <div class="bilan7" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap"><div class="big" id="synthScore"></div><p id="synthMsg" style="max-width:60ch"></p></div>
+  <div class="tablebox"><table class="res"><thead><tr><th>Exercice</th><th>Système</th><th>Notion</th><th>Résultat</th></tr></thead><tbody id="synthBody"></tbody></table></div>
+  <div id="synthWork"></div>
+  <h3 style="margin-top:4px">Fiche mémo</h3>
+  <div class="memo">
+    <div><h3>Besoin et ucd</h3><ul><li>Besoin : nécessité ou désir éprouvé par l'utilisateur.</li><li>Acteurs principaux à gauche, secondaires à droite.</li><li>«include» : fonction indispensable · «extend» : fonction optionnelle.</li></ul></div>
+    <div><h3>Diagramme d'exigences (req)</h3><ul><li>⊕ : décomposition en exigences détaillées.</li><li>«refine» : précision, souvent chiffrée.</li><li>«satisfy» : composant qui répond à l'exigence.</li></ul></div>
+    <div><h3>Énergie et puissance</h3><ul><li><span class="fx">E = P × t</span> · <span class="fx">1 W.h = 3 600 J</span></li><li>Batterie : <span class="fx">E = U × capacité</span> (W.h)</li><li><span class="fx">P = U × I</span> · <span class="fx">P = C × ω</span> · <span class="fx">P = F × v</span></li></ul></div>
+    <div><h3>Rendement</h3><ul><li><span class="fx">η = P<sub>sortie</sub> / P<sub>entrée</sub></span>, sans unité, inférieur à 1.</li><li><span class="fx">η<sub>g</sub> = η₁ × η₂ × … × η<sub>n</sub></span></li><li>Pertes = P<sub>entrée</sub> − P<sub>sortie</sub>, surtout en chaleur.</li></ul></div>
+    <div><h3>Chaînes fonctionnelles</h3><ul><li>Information : acquérir → traiter → communiquer.</li><li>Puissance : alimenter → distribuer → convertir → transmettre.</li><li>La chaîne d'information envoie des ordres à la chaîne de puissance.</li></ul></div>
+    <div><h3>Diagramme de blocs internes (ibd)</h3><ul><li>Blocs (parts) reliés par des ports et des flux.</li><li><b style="color:var(--info)">Information</b> · <b style="color:var(--elec)">énergie électrique</b> · <b style="color:var(--meca)">énergie mécanique</b>.</li><li>Le moteur sépare l'électrique du mécanique.</li></ul></div>
+  </div>
+  <div class="row noprint">
+    <button class="btn primary" id="printBtn">Imprimer / enregistrer en PDF</button>
+    <span class="muted" style="font-size:.9rem">Dans la fenêtre d'impression, choisis « Enregistrer au format PDF » comme imprimante.</span>
+  </div>
+</section>
+
 <footer>Atelier · Analyse des systèmes · Spé SI 1<sup>re</sup> · Lycée Bamana</footer>
 </div>
 
@@ -403,29 +554,33 @@ function applyTheme(){if(theme)root.setAttribute("data-theme",theme);else root.r
 $("#themeBtn").addEventListener("click",()=>{theme=!theme?"dark":theme==="dark"?"light":null;store.set("asx-theme",theme);applyTheme()});applyTheme();
 
 /* ---------- onglets et progression ---------- */
-const EX=[["ex1","1 · ucd"],["ex2","2 · req"],["ex3","3 · Énergie"],["ex4","4 · Rendement"],["ex5","5 · Chaînes"],["ex6","6 · ibd"]];
+const EX=[["ex1","1 · ucd"],["ex2","2 · req"],["ex3","3 · Énergie"],["ex4","4 · Rendement"],["ex5","5 · Chaînes"],["ex6","6 · ibd"],["ex7","7 · Drone"],["synth","Synthèse"]];
+const NEX=7;
+const META={ex1:["Trottinette électrique","Besoin et ucd"],ex2:["Robot tondeuse","Diagramme d'exigences"],ex3:["Perceuse-visseuse","Énergie et puissance"],ex4:["Monte-charge","Rendement"],ex5:["Volet roulant","Chaînes fonctionnelles"],ex6:["Robot aspirateur","Diagramme de blocs internes"],ex7:["Drone","Toute la démarche"]};
+let stats=store.get("asx-stats")||{};const saveStats=()=>store.set("asx-stats",stats);const st=id=>stats[id]||(stats[id]={tries:0,corr:false,ok:false});
 let done=new Set(store.get("asx-done")||[]);
 const tabs=$("#tabs");
 EX.forEach(([id,l])=>{const b=document.createElement("button");b.className="tabbtn";b.id="tab-"+id;b.setAttribute("role","tab");b.setAttribute("aria-controls",id);b.dataset.t=id;b.textContent=l;tabs.appendChild(b)});
 const tabBtns=$$(".tabbtn");
-function render(){tabBtns.forEach(b=>b.classList.toggle("done",done.has(b.dataset.t)));$("#progress").textContent=done.size+"/6";$("#meter").style.width=(done.size/6*100)+"%"}
+function render(){tabBtns.forEach(b=>b.classList.toggle("done",done.has(b.dataset.t)));const n=EX.slice(0,NEX).filter(e=>done.has(e[0])).length;$("#progress").textContent=n+"/"+NEX;$("#meter").style.width=(n/NEX*100)+"%"}
 function mark(id){done.add(id);store.set("asx-done",[...done]);render()}
 function show(id,focus){
   $$("section.frame").forEach(s=>s.hidden=s.id!==id);
   tabBtns.forEach(b=>{const on=b.dataset.t===id;b.setAttribute("aria-selected",on?"true":"false");b.tabIndex=on?0:-1;if(on){tabs.scrollLeft=Math.max(0,b.offsetLeft-tabs.offsetLeft-40);if(focus)b.focus()}});
   const top=$("#tabs-top").getBoundingClientRect().top+window.scrollY;if(window.scrollY>top)window.scrollTo({top});
   store.set("asx-tab",id);
+  if(id==="synth")renderSynth();
 }
 tabBtns.forEach((b,i)=>{b.addEventListener("click",()=>show(b.dataset.t));
-  b.addEventListener("keydown",e=>{let j=null;if(e.key==="ArrowRight")j=(i+1)%6;else if(e.key==="ArrowLeft")j=(i+5)%6;if(j!==null){e.preventDefault();show(EX[j][0],true)}})});
+  b.addEventListener("keydown",e=>{let j=null;const N=EX.length;if(e.key==="ArrowRight")j=(i+1)%N;else if(e.key==="ArrowLeft")j=(i+N-1)%N;if(j!==null){e.preventDefault();show(EX[j][0],true)}})});
 
 /* ---------- barre d'actions commune ---------- */
 function actions(sec,{check,corr,reset}){
   const act=document.createElement("div");act.className="row";
   act.innerHTML='<button class="btn primary">Vérifier</button><button class="btn ghost" hidden>Voir la correction</button><button class="btn">Recommencer</button><span class="fb" aria-live="polite"></span>';
   const [bc,bk,br,fb]=act.children;const box=document.createElement("div");box.className="corr";box.hidden=true;box.innerHTML="<strong>Correction</strong>"+corr.map(c=>"<p>"+c+"</p>").join("");
-  bc.addEventListener("click",()=>{const r=check();fb.className="fb "+(r.ok?"ok":"bad");fb.textContent=r.msg;if(r.ok){mark(sec.id);box.hidden=false;bk.hidden=true}else if(!r.empty)bk.hidden=false});
-  bk.addEventListener("click",()=>{box.hidden=false;bk.hidden=true});
+  bc.addEventListener("click",()=>{const r=check();fb.className="fb "+(r.ok?"ok":"bad");fb.textContent=r.msg;const t=st(sec.id);if(!r.empty&&!t.ok)t.tries++;if(r.ok){if(!t.ok){t.ok=true;t.okTries=t.tries;t.okAfterCorr=t.corr}mark(sec.id);box.hidden=false;bk.hidden=true}else if(!r.empty)bk.hidden=false;saveStats()});
+  bk.addEventListener("click",()=>{box.hidden=false;bk.hidden=true;st(sec.id).corr=true;saveStats()});
   br.addEventListener("click",()=>{reset();fb.textContent="";box.hidden=true;bk.hidden=true});
   sec.append(act,box);
 }
@@ -549,17 +704,66 @@ function verdict(r,extra){if(r.empty)return{ok:false,empty:true,msg:r.empty+" r�
   });
 })();
 
+/* ---------- 7 · drone ---------- */
+(function(){
+  const sec=$("#ex7");
+  const Q={A:[["e7a1","Filmer ou photographier depuis le ciel"],["e7a2","«include»"],["e7a3","«extend»"],["e7a4","un acteur secondaire"]],
+    B:[["e7b1","Baromètre"],["e7b2","Nacelle 3 axes"],["e7b3","Batterie LiPo"],["e7b4","Voler en autonomie"]],
+    C:[["e7c1",76.96,0.6],["e7c2",296,2],["e7c3",15.6,0.4]],
+    D:[["e7d1",60,0.5],["e7d2",60/74,0.01],["e7d3",60/74/0.95,0.01]],
+    E:[["e7e1","Acquérir"],["e7e2","Traiter"],["e7e3","Communiquer"],["e7e4","Alimenter"],["e7e5","Distribuer"],["e7e6","Convertir"],["e7e7","Transmettre"]],
+    F:[["e7f1","Information"],["e7f2","Énergie électrique"],["e7f3","Information"],["e7f4","Énergie électrique"],["e7f5","Énergie mécanique"]]};
+  const NAMES={A:"besoin et ucd",B:"req",C:"énergie",D:"rendement",E:"chaînes",F:"ibd"};
+  actions(sec,{
+    check(){let ok=0,empty=0,n=0;const bad=[];
+      Object.entries(Q).forEach(([k,q])=>{const r=checkItems(q);ok+=r.ok;empty+=r.empty;n+=r.n;const box=sec.querySelector('.part7[data-p="'+k+'"]');
+        const full=r.ok===r.n;box.classList.toggle("good",full&&!r.empty);box.classList.toggle("wrong",!full&&r.empty<r.n);if(!full)bad.push(NAMES[k])});
+      const v=verdict({ok,empty,n});if(!v.ok&&!v.empty)v.msg=ok+" / "+n+" justes. À reprendre : "+bad.join(", ")+".";return v},
+    corr:["A · Le drone répond au besoin de filmer depuis le ciel. R1 «include» : on ne peut pas faire de prise de vue sans piloter. R2 «extend» : le suivi automatique est une option. Le vent est un acteur secondaire.",
+      "B · Altitude : baromètre · stabilisation : nacelle 3 axes · énergie : batterie LiPo · la note «refine» précise « Voler en autonomie ».",
+      "C · E = 14,8 × 5,2 ≈ 77 W.h · P = 4 × 14,8 × 5 = 296 W · t = 77 / 296 ≈ 0,26 h ≈ 15,6 min.",
+      "D · P<sub>m</sub> = C × ω = 0,12 × 500 = 60 W · η<sub>ensemble</sub> = 60 / 74 ≈ 0,81 · η<sub>moteur</sub> = 0,81 / 0,95 ≈ 0,85.",
+      "E · GPS : acquérir · contrôleur de vol : traiter · LED : communiquer · batterie : alimenter · ESC : distribuer · moteurs : convertir · hélices : transmettre.",
+      "F · Radiocommande et ordres du contrôleur : information · batterie → ESC et ESC → moteurs : énergie électrique · moteurs → hélices : énergie mécanique."],
+    reset(){resetItems(sec);sec.querySelectorAll(".part7").forEach(b=>b.classList.remove("good","wrong"))}
+  });
+})();
+
+/* ---------- synthèse ---------- */
+const ADV={ex1:"Revois «include» (indispensable), «extend» (option) et la place des acteurs.",ex2:"Revois «satisfy», «refine» et le symbole ⊕.",ex3:"Revois E = P × t, P = U × I, P = C × ω et la conversion 1 W.h = 3 600 J.",ex4:"Revois η = P<sub>s</sub> / P<sub>e</sub> et le rendement global, produit des rendements.",ex5:"Revois les fonctions des deux chaînes : acquérir, traiter, communiquer / alimenter, distribuer, convertir, transmettre.",ex6:"Revois la nature des flux : information, énergie électrique, énergie mécanique.",ex7:"Reprends l'exercice du drone partie par partie, avec la fiche mémo."};
+function status(id){const t=stats[id];
+  if(done.has(id)&&(!t||!t.ok))return["a","Réussi"];
+  if(!t||(!t.tries&&!t.corr))return["d","Non commencé"];
+  if(t.ok){if(t.okAfterCorr)return["b","Réussi après correction"];return t.okTries<=1?["a","Réussi du premier coup"]:["a","Réussi en "+t.okTries+" essais"]}
+  if(t.corr)return["c","Correction consultée"];
+  return["c","En cours ("+t.tries+" essai"+(t.tries>1?"s":"")+")"];
+}
+function renderSynth(){
+  const ids=EX.slice(0,NEX).map(e=>e[0]);let ok=0;
+  $("#synthBody").innerHTML=ids.map((id,i)=>{const s=status(id);if(s[0]==="a")ok++;return '<tr><td>'+(i+1)+'</td><td>'+META[id][0]+'</td><td>'+META[id][1]+'</td><td><span class="st '+s[0]+'">'+s[1]+'</span></td></tr>'}).join("");
+  $("#synthScore").textContent=ok+" / "+NEX;
+  $("#synthMsg").textContent=ok===NEX?"Bravo ! Tu as réussi tous les exercices. Tu es prêt pour l'évaluation.":ok>=5?"Très bon travail. Il te reste quelques points à consolider.":ok>=3?"Tu as de bonnes bases. Reprends les exercices à revoir avec la fiche mémo.":"Courage : reprends le cours puis refais les exercices un par un, la correction est là pour t'aider.";
+  const todo=ids.filter(id=>status(id)[0]!=="a");
+  $("#synthWork").innerHTML=todo.length?'<h3>À revoir</h3><ul style="margin:6px 0 0;padding-left:1.2em;display:grid;gap:4px">'+todo.map(id=>'<li><strong>'+META[id][1]+'</strong> ('+META[id][0]+') : '+ADV[id]+'</li>').join("")+'</ul>':"";
+  const nm=$("#synthName").value.trim();$("#synthNameP").textContent=(nm?"Élève : "+nm+" · ":"")+"le "+new Date().toLocaleDateString("fr-FR");
+}
+$("#synthName").value=store.get("asx-name")||"";
+$("#synthName").addEventListener("input",()=>{store.set("asx-name",$("#synthName").value);renderSynth()});
+$("#printBtn").addEventListener("click",()=>{renderSynth();try{window.print()}catch(e){}});
+window.addEventListener("beforeprint",renderSynth);
+
 /* ---------- navigation bas de page ---------- */
 EX.forEach(([id],i)=>{const pg=document.createElement("div");pg.className="pager";
   if(i>0){const b=document.createElement("button");b.className="btn";b.textContent="← "+EX[i-1][1];b.addEventListener("click",()=>show(EX[i-1][0]));pg.appendChild(b)}
-  if(i<5){const b=document.createElement("button");b.className="btn primary";b.textContent="Suite : "+EX[i+1][1]+" →";b.addEventListener("click",()=>show(EX[i+1][0]));pg.appendChild(b)}
-  else{const f=document.createElement("div");f.className="final";f.id="finalBox";pg.appendChild(f)}
+  if(i<EX.length-1){const b=document.createElement("button");b.className="btn primary";b.textContent="Suite : "+EX[i+1][1]+" →";b.addEventListener("click",()=>show(EX[i+1][0]));pg.appendChild(b)}
   document.getElementById(id).appendChild(pg)});
-const fin=()=>{const f=$("#finalBox");f.innerHTML="<strong>Bilan : "+done.size+" exercice(s) réussi(s) sur 6.</strong><span>"+(done.size===6?"Bravo, tu es prêt pour l'évaluation sommative !":"Reviens sur les onglets sans ✓ : la correction t'aidera à comprendre.")+"</span>"};
-const _mark=mark;mark=function(id){_mark(id);fin()};
+const _mark=mark;mark=function(id){_mark(id);if(!$("#synth").hidden)renderSynth()};
 
-render();fin();
+render();renderSynth();
 const h=(location.hash||"").slice(1),t=store.get("asx-tab");
 show(EX.some(e=>e[0]===h)?h:EX.some(e=>e[0]===t)?t:"ex1");
 })();
 </script>
+
+</body>
+</html>
